@@ -90,10 +90,16 @@ public class DosSend {
      * @return the number of characters read
      */
     public int readTextData(){
-        System.out.println("Entrez le texte à envoyer :"); 
-        String text = input.nextLine(); // Récupère un message écrit dans la console
-        dataChar = text.toCharArray(); // convertit le message dans un tableau de char
-        return dataChar.length; // retourne le nombre de caractères du message
+        String fullText = ""; // Pour créer une chaîne de caractères à partir du fichier texte
+
+        while (input.hasNextLine()) { // Lis chaque ligne du fichier texte
+            String ligne = input.nextLine();     // Récupère une ligne
+            fullText += ligne; // Concatène les lignes dans une grande chaîne de caractères
+        }
+
+        char[] dataChar = fullText.toCharArray(); // Transforme la chaîne de caractères en tableau de char
+
+        return dataChar.length; // Renvoie la taille du tableau de char soit le nombre de caractères du fichier texte
     }
 
     /**
