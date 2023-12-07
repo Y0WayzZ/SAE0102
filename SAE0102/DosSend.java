@@ -97,7 +97,7 @@ public class DosSend {
             fullText += ligne; // Concatène les lignes dans une grande chaîne de caractères
         }
 
-        char[] dataChar = fullText.toCharArray(); // Transforme la chaîne de caractères en tableau de char
+        dataChar = fullText.toCharArray(); // Crée un tableau de char de la taille de la chaîne de caractères
 
         return dataChar.length; // Renvoie la taille du tableau de char soit le nombre de caractères du fichier texte
     }
