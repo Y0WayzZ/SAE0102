@@ -108,9 +108,19 @@ public class DosSend {
      * @return byte array containing only 0 & 1
      */
     public byte[] charToBits(char[] chars){
-        /*
-             À compléter
-        */
+        byte[] result = new byte[chars.length * 16]; // Each char is 16 bits (2 bytes)
+
+        for (int i = 0; i < chars.length; i++) {
+            char c = chars[i];
+            int index = i * 16; // Index in the result array
+
+            for (int j = 15; j >= 0; j--) { // Loop through each bit in the char
+                result[index + j] = (byte) (c & 1); // Extract the least significant bit
+                c >>= 1; // Shift the char to the right by 1 bit
+            }
+        }
+
+        return result;
     }
 
     /**
