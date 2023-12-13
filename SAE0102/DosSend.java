@@ -128,7 +128,6 @@ public class DosSend {
      * @param bits the data to modulate
      */
     public void modulateData(byte[] bits){
-        public void modulateData(byte[] bits){
 
         dataMod = new double[bits.length+10]; // Crée un tableau de double de la taille du tableau de bits + 10 pour le préfixe
         for(int i = 0 ; i < 10 ; i++){ // Création du préfixe 0101010101
@@ -139,7 +138,7 @@ public class DosSend {
             dataMod[i] = bits[i-10] * 1000;
         }
     }
-    }
+    
 
     /**
      * Display a signal in a window
