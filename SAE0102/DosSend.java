@@ -108,15 +108,14 @@ public class DosSend {
      * @return byte array containing only 0 & 1
      */
     public byte[] charToBits(char[] chars){
-        byte[] result = new byte[chars.length * 16]; // Each char is 16 bits (2 bytes)
+        byte[] result = new byte[chars.length * 8]; // Chaque char est sur 8 bits (1 octets)
 
         for (int i = 0; i < chars.length; i++) {
             char c = chars[i];
-            int index = i * 16; // Index in the result array
-
-            for (int j = 15; j >= 0; j--) { // Loop through each bit in the char
-                result[index + j] = (byte) (c & 1); // Extract the least significant bit
-                c >>= 1; // Shift the char to the right by 1 bit
+            int index = i * 8; // Index dans le tableau résultant
+            for (int j = 7; j >= 0; j--) { // Parcours de chaque bit dans le char
+                result[index + j] = (byte) (c & 1); // Extraction du bit de poids faible
+                c >>= 1; // Décalage du char d'un bit vers la droite
             }
         }
 
