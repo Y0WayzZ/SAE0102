@@ -130,11 +130,11 @@ public class DosSend {
 
         dataMod = new double[bits.length+10]; // Crée un tableau de double de la taille du tableau de bits + 10 pour le préfixe
         for(int i = 0 ; i < 10 ; i++){ // Création du préfixe 0101010101
-            dataMod[i] = i%2*1000;
+            dataMod[i] = i%2*FP;
         }
 
         for(int i = 10; i < bits.length+10; i++){ // Modulation des données 1000Hz pour 1 et 0Hz pour 0
-            dataMod[i] = bits[i-10] * 1000;
+            dataMod[i] = bits[i-10] * FP;
         }
     }
     
