@@ -148,9 +148,21 @@ public class DosSend {
      * @param title the title of the window
      */
     public static void displaySig(double[] sig, int start, int stop, String mode, String title){
-      /*
-          À compléter
-      */
+        StdDraw.setCanvasSize(800, 400); 
+        StdDraw.setXscale(0, sig.length); // Pour voir la sinusoidale du début à la fin
+        StdDraw.setYscale(-1500, 1500); // Pour voir correctement le signal
+        
+        for(int i = 0; i < sig.length ; i++){ // Parcours du tableau de double
+            for (double j = i; j < i+1; j += 0.01) { // Boucle pour la réalisation de la sinusoidale et traçage des sons 
+                double y1 = sig[i] * Math.sin(2 * Math.PI * j / sig.length); // Calcul des coordonnées pour le traçage des sons sur la sinusoidale
+                double y2 = sig[i + 1] * Math.sin(2 * Math.PI * (j + 1) / sig.length);
+
+                StdDraw.setPenColor(StdDraw.BLACK); // Traçage des sons de la sinusoidale
+                StdDraw.setPenRadius(0.002);
+                StdDraw.line(i, y1, i + 1, y2);
+            }
+        }
+        StdDraw.show();
     }
 
     /**
