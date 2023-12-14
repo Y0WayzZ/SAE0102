@@ -104,9 +104,13 @@ public class DosSend {
      */
     public void writeNormalizeWavData(){
         try {
-            /*
-                À compléter
-            */
+           // Normalisation des données audio entre -MAX_AMP et MAX_AMP
+        for (int i = 0; i < dataMod.length; i++) {
+            double sample = dataMod[i];
+            int normalizedSample = (int) (sample * MAX_AMP);
+            // Écriture des échantillons normalisés dans le fichier .wav
+            writeLittleEndian(normalizedSample, FMT / 8, outStream);
+        }
             }
         } catch (Exception e) {
             System.out.println("Erreur d'écriture");
