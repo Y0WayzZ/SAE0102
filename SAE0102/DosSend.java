@@ -60,10 +60,38 @@ public class DosSend {
         long nbBytes = taille * CHANNELS * FMT / 8;
 
         try  {
-            outStream.write(new byte[]{'R', 'I', 'F', 'F'});
-            /*
-                À compléter
-            */
+  // [Bloc de déclaration d'un fichier au format WAVE]
+                    // FileTypeBlocID
+                    outStream.write(new byte[] { 'R', 'I', 'F', 'F' });
+                    // FileSize
+                    writeLittleEndian((int) (nbBytes + 36), 4, outStream);
+                    // FileFormatID
+                    outStream.write(new byte[] { 'W', 'A', 'V', 'E' });
+                    // [Bloc décrivant le format audio]
+                    // FormatBlocID
+                    outStream.write(new byte[] { 'f', 'm', 't', ' ' });
+                    // BlocSize
+                    writeLittleEndian(16, 4, outStream);
+                    // AudioFormat (2 octets) : Format du stockage dans le fichier (1: PCM entier,
+                    // 3: PCM flottant, 65534: étendu)
+                    writeLittleEndian(1, 2, outStream); // PCM entier
+                    // NumChannels (2 octets) : Nombre de canaux (1 pour mono, 2 pour stéréo, etc.)
+                    writeLittleEndian(CHANNELS, 2, outStream);
+                    // SampleRate (4 octets) : Fréquence d'échantillonnage (en Hz)
+                    writeLittleEndian(FECH, 4, outStream);
+                    // ByteRate (4 octets) : Débit binaire (nombre d'octets par seconde)
+                    writeLittleEndian(FECH * CHANNELS * FMT / 8, 4, outStream);
+                    // BlockAlign (2 octets) : Nombre d'octets pour un échantillon, tous canaux
+                    // confondus
+                    writeLittleEndian(CHANNELS * FMT / 8, 2, outStream);
+                    // BitsPerSample (2 octets) : Bits par échantillon (par canal)
+                    writeLittleEndian(FMT, 2, outStream);
+                    // [Bloc des données]
+                    // DataBlocID
+                    outStream.write(new byte[] { 'd', 'a', 't', 'a' });
+                    // DataSize (4 octets) : Taille des données audio (en octets)
+                    writeLittleEndian((int) nbBytes, 4, outStream);
+            
         } catch(Exception e){
             System.out.printf(e.toString());
         }
