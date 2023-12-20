@@ -103,7 +103,8 @@ public class DosSend {
      * after normalizing its amplitude to the maximum value of the format (8 bits signed)
      */
     public void writeNormalizeWavData(){
-        try {
+
+         try {
            // Normalisation des données audio entre -MAX_AMP et MAX_AMP
         for (int i = 0; i < dataMod.length; i++) {
             double sample = dataMod[i];
@@ -111,11 +112,12 @@ public class DosSend {
             // Écriture des échantillons normalisés dans le fichier .wav
             writeLittleEndian(normalizedSample, FMT / 8, outStream);
         }
-            }
+    
         } catch (Exception e) {
             System.out.println("Erreur d'écriture");
         }
-    }
+        
+        }
 
     /**
      * Read the text data to encode and store them into dataChar
