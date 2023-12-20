@@ -197,12 +197,13 @@ public class DosSend {
      */
     public static void displaySig(double[] sig, int start, int stop, String mode, String title) {
         StdDraw.setCanvasSize(800, 400);
-        StdDraw.setXscale(0, sig.length); // Pour voir la sinusoidale du début à la fin
+        StdDraw.setXscale(start, stop); // Ajusté pour afficher de start à stop
         StdDraw.setYscale(-1500, 1500); // Pour voir correctement le signal
+        StdDraw.setTitle(title);
 
-        for (int i = 0; i < sig.length; i++) { // Parcours du tableau de double
-            for (double j = i; j < i + 1; j += 0.01) { // Boucle pour la réalisation de la sinusoidale et traçage des
-                                                       // sons
+        for (int i = start; i < stop - 1; i++) { // Ajusté pour parcourir de start à stop - 1
+            for (double j = i; j < i + 1; j += 0.1) { // Boucle pour la réalisation de la sinusoidale et traçage des
+                                                      // sons
                 double y1 = sig[i] * Math.sin(2 * Math.PI * j / sig.length); // Calcul des coordonnées pour le traçage
                                                                              // des sons sur la sinusoidale
                 double y2 = sig[i + 1] * Math.sin(2 * Math.PI * (j + 1) / sig.length);
@@ -225,9 +226,25 @@ public class DosSend {
      * @param title      the title of the window
      */
     public static void displaySig(List<double[]> listOfSigs, int start, int stop, String mode, String title) {
-        /*
-         * À compléter
-         */
+        StdDraw.setCanvasSize(800, 400);
+        StdDraw.setXscale(start, stop);
+
+        for (double[] sig : listOfSigs) {
+            for (int i = 0; i < sig.length - 1; i++) {
+                double y1 = sig[i] * Math.sin(2 * Math.PI * i / sig.length);
+                double y2 = sig[i + 1] * Math.sin(2 * Math.PI * (i + 1) / sig.length);
+
+                StdDraw.setPenColor(StdDraw.BLACK);
+                StdDraw.setPenRadius(0.002);
+
+                if (mode.equals("line")) {
+                    StdDraw.line(i, y1, i + 1, y2);
+                } else if (mode.equals("point")) {
+                    StdDraw.point(i, y1);
+                }
+            }
+        }
+        StdDraw.show();
     }
 
     public static void main(String[] args) {
