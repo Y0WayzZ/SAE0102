@@ -197,23 +197,90 @@ public class DosSend {
      */
     public static void displaySig(double[] sig, int start, int stop, String mode, String title) {
         StdDraw.setCanvasSize(800, 400);
-        StdDraw.setXscale(start, stop); // Ajusté pour afficher de start à stop
-        StdDraw.setYscale(-1500, 1500); // Pour voir correctement le signal
+        StdDraw.setXscale(start, stop);
+        StdDraw.setYscale(-1000, 1000);
         StdDraw.setTitle(title);
 
-        for (int i = start; i < stop - 1; i++) { // Ajusté pour parcourir de start à stop - 1
-            for (double j = i; j < i + 1; j += 0.1) { // Boucle pour la réalisation de la sinusoidale et traçage des
-                                                      // sons
-                double y1 = sig[i] * Math.sin(2 * Math.PI * j / sig.length); // Calcul des coordonnées pour le traçage
-                                                                             // des sons sur la sinusoidale
-                double y2 = sig[i + 1] * Math.sin(2 * Math.PI * (j + 1) / sig.length);
-
-                StdDraw.setPenColor(StdDraw.BLACK); // Traçage des sons de la sinusoidale
-                StdDraw.setPenRadius(0.002);
-                StdDraw.line(i, y1, i + 1, y2);
-            }
+        StdDraw.setPenColor(StdDraw.BLACK);
+        StdDraw.line(start, 0, stop, 0);
+        // Dessine la barre graduée
+        for (int i = start; i < stop + 200; i += 200) {
+            StdDraw.line(i, -20, i, 20);
+            StdDraw.text(i, -100, String.valueOf(i));
         }
-        StdDraw.show();
+        StdDraw.setPenColor(StdDraw.BLUE);
+
+        // Dessine en fonction du mode
+        if (mode.equals("line")) {
+            boolean isDrawingSinusoidal = false;
+
+            for (int i = start; i < stop - 1; i++) {
+                double x1 = i;
+                double x2 = i + 1;
+
+                // Change le mode de dessin en fonction de la valeur de sig
+                if (sig[i] == 1000 && !isDrawingSinusoidal) {
+                    isDrawingSinusoidal = true;
+                }
+
+                // Dessine soit une sinusoidale soit une ligne droite
+                if (isDrawingSinusoidal) {
+                    // Permet de plus ou moins voir la sinusoidale
+                    double frequence = 0.02;
+                    // Amplitude de la sinusoidale de 1000
+                    double amplitude = 900;
+
+                    // dessiner la sinusoidale
+                    for (double t = x1; t < x2; t += 0.01) {
+                        double y = amplitude * Math.sin(2 * Math.PI * frequence * t); // Calcul de l'ordonnée
+                        StdDraw.line(t, y, t + 0.01, amplitude * Math.sin(2 * Math.PI * frequence * (t + 0.01))); // Dessine
+                        // la
+                        // sinusoidale
+                    }
+
+                    // Une fois la sinusoidale dessinée, réinitialise le mode à false
+                    isDrawingSinusoidal = false;
+                } else {
+                    // Dessine une ligne droite au milieu Y
+                    StdDraw.line(x1, 0, x2, 0);
+                }
+            }
+        } else if (mode.equals("point")) {
+            boolean isDrawingSinusoidal = false;
+
+            for (int i = start; i < stop - 1; i++) {
+                double x1 = i;
+                double x2 = i + 1;
+
+                // Change le mode de dessin en fonction de la valeur de sig
+                if (sig[i] == 1000 && !isDrawingSinusoidal) {
+                    isDrawingSinusoidal = true;
+                }
+
+                // Dessine soit une sinusoidale soit une ligne droite
+                if (isDrawingSinusoidal) {
+                    // Permet de plus ou moins voir la sinusoidale
+                    double frequence = 0.02;
+                    // Amplitude de la sinusoidale de 1000
+                    double amplitude = 900;
+
+                    // dessiner la sinusoidale point par point
+                    for (double t = x1; t < x2; t += 0.01) {
+                        double y = amplitude * Math.sin(2 * Math.PI * frequence * t); // Calcul de l'ordonnée
+                        StdDraw.point(t, y); // Dessine le point de la sinusoidale
+                    }
+
+                    // Une fois la sinusoidale dessinée, réinitialise le mode à false
+                    isDrawingSinusoidal = false;
+                } else {
+                    // Dessine une ligne droite au milieu Y
+                    StdDraw.line(x1, 0, x2, 0);
+                }
+            }
+        } else { // Si le mode n'est pas line ou point
+            System.out.println("Mode inconnu");
+        }
+
     }
 
     /**
