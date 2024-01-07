@@ -294,24 +294,25 @@ public class DosSend {
      */
     public static void displaySig(List<double[]> listOfSigs, int start, int stop, String mode, String title) {
         StdDraw.setCanvasSize(800, 400);
-        StdDraw.setXscale(start, stop);
+        int largeur = listOfSigs.size() * (stop - start); // largeur de la fenêtre
+        StdDraw.setXscale(0, largeur);
+        StdDraw.setYscale(-1000, 1000);
+        StdDraw.setTitle(title);
 
-        for (double[] sig : listOfSigs) {
-            for (int i = 0; i < sig.length - 1; i++) {
-                double y1 = sig[i] * Math.sin(2 * Math.PI * i / sig.length);
-                double y2 = sig[i + 1] * Math.sin(2 * Math.PI * (i + 1) / sig.length);
-
-                StdDraw.setPenColor(StdDraw.BLACK);
-                StdDraw.setPenRadius(0.002);
-
-                if (mode.equals("line")) {
-                    StdDraw.line(i, y1, i + 1, y2);
-                } else if (mode.equals("point")) {
-                    StdDraw.point(i, y1);
-                }
+        int index = 0; // index actuel dans le tableau sig
+        double[] sig = new double[largeur]; // signal à afficher après concaténation
+        for (int i = 0; i < listOfSigs.size(); i++) { // on parcourt la liste des signaux
+            for (int j = index; j < stop - start; j++) {
+                sig[j] = listOfSigs.get(i)[j]; // on ajoute les éléments du signal à afficher de l'élément start au stop
+                                               // du signal
+                                               // actuel
             }
+            index += stop - start; // On passe on prochain signal donc on incrémente pour remplir sig
         }
-        StdDraw.show();
+
+        displaySig(sig, 0, sig.length, "line", "Signal modulé"); // On affiche la liste concaténée des signaux à
+                                                                 // afficher de l'élément start à l'élément stop de
+                                                                 // chacun d'entre eux
     }
 
     public static void main(String[] args) {
