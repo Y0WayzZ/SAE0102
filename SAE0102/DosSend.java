@@ -3,6 +3,7 @@ import java.io.FileOutputStream;
 import java.util.Scanner;
 import java.util.List;
 import java.awt.Color;
+import java.util.ArrayList;
 
 public class DosSend {
     final int FECH = 44100; // fréquence d'échantillonnage
@@ -400,9 +401,9 @@ public class DosSend {
         StdDraw.setYscale(-1, 1);
         StdDraw.setTitle(title);
 
-        Color[] colors = { StdDraw.BLUE, StdDraw.RED, StdDraw.PINK, StdDraw.YELLOW, StdDraw.GREEN, StdDraw.ORANGE }; // Tableau
-                                                                                                                     // de
-                                                                                                                     // couleurs
+        Color[] colors = { StdDraw.BLUE, StdDraw.RED, StdDraw.GREEN, StdDraw.YELLOW, StdDraw.ORANGE }; // Tableau
+                                                                                                       // de
+                                                                                                       // couleurs
         StdDraw.setPenColor(StdDraw.BLACK);
         StdDraw.line(start, 0, stop, 0);
         StdDraw.text(start + 50, 0.9, String.valueOf(0.9)); // Affiche la hauteur de la porteuse
@@ -515,5 +516,6 @@ public class DosSend {
 
         // exemple d'affichage du signal modulé dans une fenêtre graphique
         displaySig(dosSend.dataMod, 1000, 3000, "line", "Signal modulé");
+
     }
 }
