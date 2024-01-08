@@ -2,6 +2,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Scanner;
 import java.util.List;
+import java.awt.Color;
 
 public class DosSend {
     final int FECH = 44100; // fréquence d'échantillonnage
@@ -394,22 +395,101 @@ public class DosSend {
      * @param title      the title of the window
      */
     public static void displaySig(List<double[]> listOfSigs, int start, int stop, String mode, String title) {
-        int largeur = listOfSigs.size() * (stop - start); // largeur de la fenêtre
+        StdDraw.setCanvasSize(800, 400);
+        StdDraw.setXscale(start, stop);
+        StdDraw.setYscale(-1, 1);
+        StdDraw.setTitle(title);
 
-        int index = 0; // index actuel dans le tableau sig
-        double[] sig = new double[largeur]; // signal à afficher après concaténation
-        for (int i = 0; i < listOfSigs.size(); i++) { // on parcourt la liste des signaux
-            for (int j = index; j < stop - start; j++) {
-                sig[j] = listOfSigs.get(i)[j]; // on ajoute les éléments du signal à afficher de l'élément start au stop
-                                               // du signal
-                                               // actuel
-            }
-            index += stop - start; // On passe on prochain signal donc on incrémente pour remplir sig
+        Color[] colors = { StdDraw.BLUE, StdDraw.RED, StdDraw.PINK, StdDraw.YELLOW, StdDraw.GREEN, StdDraw.ORANGE }; // Tableau
+                                                                                                                     // de
+                                                                                                                     // couleurs
+        StdDraw.setPenColor(StdDraw.BLACK);
+        StdDraw.line(start, 0, stop, 0);
+        StdDraw.text(start + 50, 0.9, String.valueOf(0.9)); // Affiche la hauteur de la porteuse
+        StdDraw.text(start + 50, -0.9, String.valueOf(-0.9));
+        // Dessine la barre graduée
+        for (int i = start; i < stop + 200; i += 200) {
+            StdDraw.line(i, -0.02, i, 0.02);
+            StdDraw.text(i, -0.1, String.valueOf(i));
         }
 
-        displaySig(sig, 0, sig.length, "line", "Signal modulé"); // On affiche la liste concaténée des signaux à
-                                                                 // afficher de l'élément start à l'élément stop de
-                                                                 // chacun d'entre eux
+        // Dessine en fonction du mode
+        if (mode.equals("line")) {
+
+            for (int j = 0; j < listOfSigs.size(); j++) {
+                StdDraw.setPenColor(colors[j % colors.length]); // Change la couleur du signal en fonction de son index
+                boolean isDrawingSinusoidal = false; // Dessiner ou non sinusoidale
+                for (int i = start; i < stop - 1; i++) {
+                    double x1 = i;
+                    double x2 = i + 1;
+
+                    // Change le mode de dessin en fonction de la valeur de sig
+                    if (listOfSigs.get(j)[i] != 0 && !isDrawingSinusoidal) {
+                        isDrawingSinusoidal = true;
+                    }
+
+                    // Dessine soit une sinusoidale soit une ligne droite
+                    if (isDrawingSinusoidal) {
+                        // Permet de plus ou moins voir la sinusoidale
+                        double frequence = 0.02;
+                        // Amplitude de la sinusoidale <= 1
+                        double amplitude = 0.9;
+
+                        // dessiner la sinusoidale
+                        for (double t = x1; t < x2; t += 0.2) {
+                            double y = amplitude * Math.sin(2 * Math.PI * frequence * t); // Calcul de l'ordonnée
+                            StdDraw.line(t, y, t + 0.2, amplitude * Math.sin(2 * Math.PI * frequence * (t + 0.2))); // Dessine
+                            // la
+                            // sinusoidale
+                        }
+
+                        // Une fois la sinusoidale dessinée, réinitialise le mode à false
+                        isDrawingSinusoidal = false;
+                    } else {
+                        // Dessine une ligne droite au milieu Y
+                        StdDraw.line(x1, 0, x2, 0);
+                    }
+                }
+
+            }
+        } else if (mode.equals("point")) {
+            for (int j = 0; j < listOfSigs.size(); j++) {
+                StdDraw.setPenColor(colors[j % colors.length]); // Change la couleur du signal en fonction de son index
+                boolean isDrawingSinusoidal = false; // Dessiner ou non sinusoidale
+                for (int i = start; i < stop - 1; i++) {
+                    double x1 = i;
+                    double x2 = i + 1;
+
+                    // Change le mode de dessin en fonction de la valeur de sig
+                    if (listOfSigs.get(j)[i] != 0 && !isDrawingSinusoidal) {
+                        isDrawingSinusoidal = true;
+                    }
+
+                    // Dessine soit une sinusoidale soit une ligne droite
+                    if (isDrawingSinusoidal) {
+                        // Permet de plus ou moins voir la sinusoidale
+                        double frequence = 0.02;
+                        // Amplitude de la sinusoidale <= 1
+                        double amplitude = 0.9;
+
+                        // dessiner la sinusoidale point par point
+                        for (double t = x1; t < x2; t += 0.2) {
+                            double y = amplitude * Math.sin(2 * Math.PI * frequence * t); // Calcul de l'ordonnée
+                            StdDraw.point(t, y); // Dessine le point de la sinusoidale
+                        }
+
+                        // Une fois la sinusoidale dessinée, réinitialise le mode à false
+                        isDrawingSinusoidal = false;
+                    } else {
+                        // Dessine une ligne droite au milieu Y
+                        StdDraw.line(x1, 0, x2, 0);
+                    }
+                }
+            }
+        } else { // Si le mode n'est pas line ou point
+            System.out.println("Mode inconnu");
+        }
+
     }
 
     public static void main(String[] args) {
