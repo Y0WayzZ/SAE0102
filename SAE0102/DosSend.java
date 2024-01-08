@@ -207,10 +207,7 @@ public class DosSend {
      * @param title the title of the window
      */
     public static void displaySig(int[] sig, int start, int stop, String mode, String title) {
-        if (!mode.equals(MODELINE) && !mode.equals(MODEPOINT)) { // Si le mode n'est pas line ou point
-            printError(MODEINCONNU);
-        }
-        initializeCanvas(start, stop, title);
+        initializeCanvas(start, stop, title, mode);
         for (int i = start; i < stop - 1; i++) {
             double x1 = i;
             double x2 = i + 1.0;
@@ -233,10 +230,7 @@ public class DosSend {
      * @param title the title of the window
      */
     public static void displaySig(double[] sig, int start, int stop, String mode, String title) {
-        if (!mode.equals(MODELINE) && !mode.equals(MODEPOINT)) { // Si le mode n'est pas line ou point
-            printError(MODEINCONNU);
-        }
-        initializeCanvas(start, stop, title);
+        initializeCanvas(start, stop, title, mode);
         for (int i = start; i < stop - 1; i++) {
             double x1 = i;
             double x2 = i + 1.0;
@@ -259,10 +253,8 @@ public class DosSend {
      * @param title      the title of the window
      */
     public static void displaySig(List<double[]> listOfSigs, int start, int stop, String mode, String title) {
-        if (!mode.equals(MODELINE) && !mode.equals(MODEPOINT)) { // Si le mode n'est pas line ou point
-            printError(MODEINCONNU);
-        }
-        initializeCanvas(start, stop, title);
+
+        initializeCanvas(start, stop, title, mode);
 
         for (int j = 0; j < listOfSigs.size(); j++) {
             changeCouleur(j % COLORS.length); // Change la couleur du signal en fonction de son index
@@ -280,6 +272,13 @@ public class DosSend {
 
     }
 
+    /**
+     * Dessine en fonction du mode
+     * 
+     * @param mode mode de dessin
+     * @param x1   abscisse de départ
+     * @param x2   abscisse de fin
+     */
     public static void dessinSignal(String mode, double x1, double x2) {
         // Dessine en fonction du mode
         if (mode.equals(MODELINE)) {
@@ -392,9 +391,13 @@ public class DosSend {
      * @param stop  the last sample to display
      * @param title the title of the window
      */
-    public static void initializeCanvas(int start, int stop, String title) {
+    public static void initializeCanvas(int start, int stop, String title, String mode) {
         if (start > stop) { // Vérifie que start est inférieur à stop
             printError("start doit être inférieur à stop");
+        }
+
+        if (!mode.equals(MODELINE) && !mode.equals(MODEPOINT)) { // Si le mode n'est pas line ou point
+            printError(MODEINCONNU);
         }
 
         StdDraw.setCanvasSize(800, 400); // Définit la taille de la fenêtre
