@@ -9,18 +9,19 @@ public class DosSend {
     final int FP = 1000; // fréquence de la porteuses
     final int BAUDS = 100; // débit en symboles par seconde
     final int FMT = 16; // format des données
-    final int MAX_AMP = (1 << (FMT - 1)) - 1; // amplitude max en entier
+    final int MAX_AMP = (1 << (FMT - 1)) - 1; // AMPLITUDE max en entier
     final int CHANNELS = 1; // nombre de voies audio (1 = mono)
     final int[] START_SEQ = { 1, 0, 1, 0, 1, 0, 1, 0 }; // séquence de synchro au début
     final Scanner input = new Scanner(System.in); // pour lire le fichier texte
 
-    public static final String modeInconnu = "mode inconnu"; // Mode inconnu
-    public static final String modeLine = "line"; // Mode line
-    public static final String modePoint = "point"; // Mode point
-    public static final double frequence = 0.02; // Permet de plus ou moins voir la sinusoidale
-    public static final double amplitude = 0.9; // Amplitude de la sinusoidale <= 1
+    private static final Color[] COLORS = { StdDraw.BLUE, StdDraw.RED, StdDraw.GREEN, StdDraw.YELLOW, StdDraw.ORANGE }; // Tableau
+    public static final String MODEINCONNU = "mode inconnu"; // Mode inconnu
+    public static final String MODELINE = "line"; // Mode line
+    public static final String MODEPOINT = "point"; // Mode point
+    public static final double FREQUENCE = 0.02; // Permet de plus ou moins voir la sinusoidale
+    public static final double AMPLITUDE = 0.9; // AMPLITUDE de la sinusoidale <= 1
 
-    public static boolean isDrawingSinusoidal = false; // Dessiner ou non sinusoidale
+    private static boolean isDrawingSinusoidal = false; // Dessiner ou non sinusoidale
     long taille; // nombre d'octets de données à transmettre
     double duree; // durée de l'audio
     double[] dataMod; // données modulées
@@ -109,7 +110,7 @@ public class DosSend {
 
     /**
      * Write the data in the wav file
-     * after normalizing its amplitude to the maximum value of the format (8 bits
+     * after normalizing its AMPLITUDE to the maximum value of the format (8 bits
      * signed)
      */
     public void writeNormalizeWavData() {
@@ -205,7 +206,7 @@ public class DosSend {
         initializeCanvas(start, stop, title);
 
         // Dessine en fonction du mode
-        if (mode.equals(modeLine)) {
+        if (mode.equals(MODELINE)) {
 
             for (int i = start; i < stop - 1; i++) {
                 double x1 = i;
@@ -218,7 +219,7 @@ public class DosSend {
 
                 dessinLine(x1, x2);
             }
-        } else if (mode.equals(modePoint)) {
+        } else if (mode.equals(MODEPOINT)) {
 
             for (int i = start; i < stop - 1; i++) {
                 double x1 = i;
@@ -232,7 +233,7 @@ public class DosSend {
                 dessinPoint(x1, x2);
             }
         } else { // Si le mode n'est pas line ou point
-            System.out.println(modeInconnu);
+            printError(MODEINCONNU);
 
         }
 
@@ -251,7 +252,7 @@ public class DosSend {
         initializeCanvas(start, stop, title);
 
         // Dessine en fonction du mode
-        if (mode.equals(modeLine)) {
+        if (mode.equals(MODELINE)) {
 
             for (int i = start; i < stop - 1; i++) {
                 double x1 = i;
@@ -264,7 +265,7 @@ public class DosSend {
 
                 dessinLine(x1, x2);
             }
-        } else if (mode.equals(modePoint)) {
+        } else if (mode.equals(MODEPOINT)) {
 
             for (int i = start; i < stop - 1; i++) {
                 double x1 = i;
@@ -278,7 +279,7 @@ public class DosSend {
                 dessinPoint(x1, x2);
             }
         } else { // Si le mode n'est pas line ou point
-            System.out.println(modeInconnu);
+            printError(MODEINCONNU);
         }
 
     }
@@ -295,13 +296,10 @@ public class DosSend {
     public static void displaySig(List<double[]> listOfSigs, int start, int stop, String mode, String title) {
         initializeCanvas(start, stop, title);
 
-        Color[] colors = { StdDraw.BLUE, StdDraw.RED, StdDraw.GREEN, StdDraw.YELLOW, StdDraw.ORANGE }; // Tableau
-
         // Dessine en fonction du mode
-        if (mode.equals(modeLine)) {
-
+        if (mode.equals(MODELINE)) {
             for (int j = 0; j < listOfSigs.size(); j++) {
-                StdDraw.setPenColor(colors[j % colors.length]); // Change la couleur du signal en fonction de son index
+                changeCouleur(j % COLORS.length); // Change la couleur du signal en fonction de son index
                 for (int i = start; i < stop - 1; i++) {
                     double x1 = i;
                     double x2 = i + 1.0;
@@ -315,9 +313,9 @@ public class DosSend {
                 }
 
             }
-        } else if (mode.equals(modePoint)) {
+        } else if (mode.equals(MODEPOINT)) {
             for (int j = 0; j < listOfSigs.size(); j++) {
-                StdDraw.setPenColor(colors[j % colors.length]); // Change la couleur du signal en fonction de son index
+                changeCouleur(j % COLORS.length); // Change la couleur du signal en fonction de son index
                 for (int i = start; i < stop - 1; i++) {
                     double x1 = i;
                     double x2 = i + 1.0;
@@ -331,9 +329,18 @@ public class DosSend {
                 }
             }
         } else { // Si le mode n'est pas line ou point
-            System.out.println(modeInconnu);
+            printError(MODEINCONNU);
         }
 
+    }
+
+    /**
+     * Change la couleur du signal en fonction de son index
+     * 
+     * @param index index du signal
+     */
+    public static void changeCouleur(int index) {
+        StdDraw.setPenColor(COLORS[index]); // Change la couleur du signal en fonction de son index
     }
 
     /**
@@ -341,14 +348,14 @@ public class DosSend {
      * 
      * @param x1        abscisse de départ
      * @param x2        abscisse de fin
-     * @param amplitude amplitude de la sinusoidale
-     * @param frequence fréquence de la sinusoidale
+     * @param AMPLITUDE AMPLITUDE de la sinusoidale
+     * @param FREQUENCE fréquence de la sinusoidale
      */
     public static void dessinSinusoidaleLine(double x1, double x2) {
         // dessiner la sinusoidale
         for (double t = x1; t < x2; t += 0.2) {
-            double y = amplitude * Math.sin(2 * Math.PI * frequence * t); // Calcul de l'ordonnée
-            StdDraw.line(t, y, t + 0.2, amplitude * Math.sin(2 * Math.PI * frequence * (t + 0.2))); // Dessine
+            double y = AMPLITUDE * Math.sin(2 * Math.PI * FREQUENCE * t); // Calcul de l'ordonnée
+            StdDraw.line(t, y, t + 0.2, AMPLITUDE * Math.sin(2 * Math.PI * FREQUENCE * (t + 0.2))); // Dessine
             // la
             // sinusoidale
         }
@@ -359,14 +366,14 @@ public class DosSend {
      * 
      * @param x1        abscisse de départ
      * @param x2        abscisse de fin
-     * @param amplitude amplitude de la sinusoidale
-     * @param frequence fréquence de la sinusoidale
+     * @param AMPLITUDE AMPLITUDE de la sinusoidale
+     * @param FREQUENCE fréquence de la sinusoidale
      */
     public static void dessinSinusoidalePoint(double x1, double x2) {
         // dessiner la sinusoidale
         for (double t = x1; t < x2; t += 0.2) {
-            double y = amplitude * Math.sin(2 * Math.PI * frequence * t); // Calcul de l'ordonnée
-            StdDraw.line(t, y, t + 0.2, amplitude * Math.sin(2 * Math.PI * frequence * (t + 0.2))); // Dessine
+            double y = AMPLITUDE * Math.sin(2 * Math.PI * FREQUENCE * t); // Calcul de l'ordonnée
+            StdDraw.line(t, y, t + 0.2, AMPLITUDE * Math.sin(2 * Math.PI * FREQUENCE * (t + 0.2))); // Dessine
             // la
             // sinusoidale
         }
@@ -414,6 +421,15 @@ public class DosSend {
     }
 
     /**
+     * Affiche un message d'erreur
+     * 
+     * @param message message d'erreur
+     */
+    public static void printError(String message) {
+        System.out.println(message);
+    }
+
+    /**
      * Initialize the canvas
      * 
      * @param start the first sample to display
@@ -421,12 +437,17 @@ public class DosSend {
      * @param title the title of the window
      */
     public static void initializeCanvas(int start, int stop, String title) {
-        StdDraw.setCanvasSize(800, 400);
-        StdDraw.setXscale(start, stop);
-        StdDraw.setYscale(-1, 1);
-        StdDraw.setTitle(title);
+        if (start > stop) { // Vérifie que start est inférieur à stop
+            printError("start doit être inférieur à stop");
+            return;
+        }
+
+        StdDraw.setCanvasSize(800, 400); // Définit la taille de la fenêtre
+        StdDraw.setXscale(start, stop); // Définit l'échelle des abscisses
+        StdDraw.setYscale(-1, 1); // Définit l'échelle des ordonnées
+        StdDraw.setTitle(title); // Définit le titre de la fenêtre
         StdDraw.setPenColor(StdDraw.BLACK);
-        StdDraw.line(start, 0, stop, 0);
+        StdDraw.line(start, 0, stop, 0); // Dessine l'axe des abscisses
         StdDraw.text(start + 50, 0.9, String.valueOf(0.9)); // Affiche la hauteur de la porteuse
         StdDraw.text(start + 50, -0.9, String.valueOf(-0.9));
         // Dessine la barre graduée
