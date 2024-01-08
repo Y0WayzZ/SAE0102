@@ -14,6 +14,7 @@ public class DosSend {
     final int[] START_SEQ = { 1, 0, 1, 0, 1, 0, 1, 0 }; // séquence de synchro au début
     final Scanner input = new Scanner(System.in); // pour lire le fichier texte
 
+    public static final String modeInconnu = "mode inconnu"; // Mode inconnu
     public static final String modeLine = "line"; // Mode line
     public static final String modePoint = "point"; // Mode point
     public static final double frequence = 0.02; // Permet de plus ou moins voir la sinusoidale
@@ -202,7 +203,6 @@ public class DosSend {
      */
     public static void displaySig(int[] sig, int start, int stop, String mode, String title) {
         initializeCanvas(start, stop, title);
-        StdDraw.setPenColor(StdDraw.BLUE);
 
         // Dessine en fonction du mode
         if (mode.equals(modeLine)) {
@@ -216,17 +216,7 @@ public class DosSend {
                     isDrawingSinusoidal = true;
                 }
 
-                // Dessine soit une sinusoidale soit une ligne droite
-                if (isDrawingSinusoidal) {
-
-                    dessinSinusoidaleLine(x1, x2);
-
-                    // Une fois la sinusoidale dessinée, réinitialise le mode à false
-                    isDrawingSinusoidal = false;
-                } else {
-                    // Dessine une ligne droite au milieu Y
-                    StdDraw.line(x1, 0, x2, 0);
-                }
+                dessinLine(x1, x2);
             }
         } else if (mode.equals(modePoint)) {
 
@@ -239,20 +229,11 @@ public class DosSend {
                     isDrawingSinusoidal = true;
                 }
 
-                // Dessine soit une sinusoidale soit une ligne droite
-                if (isDrawingSinusoidal) {
-
-                    dessinSinusoidalePoint(x1, x2);
-
-                    // Une fois la sinusoidale dessinée, réinitialise le mode à false
-                    isDrawingSinusoidal = false;
-                } else {
-                    // Dessine une ligne droite au milieu Y
-                    StdDraw.line(x1, 0, x2, 0);
-                }
+                dessinPoint(x1, x2);
             }
         } else { // Si le mode n'est pas line ou point
-            System.out.println("Mode inconnu");
+            System.out.println(modeInconnu);
+
         }
 
     }
@@ -268,7 +249,6 @@ public class DosSend {
      */
     public static void displaySig(double[] sig, int start, int stop, String mode, String title) {
         initializeCanvas(start, stop, title);
-        StdDraw.setPenColor(StdDraw.BLUE);
 
         // Dessine en fonction du mode
         if (mode.equals(modeLine)) {
@@ -282,17 +262,7 @@ public class DosSend {
                     isDrawingSinusoidal = true;
                 }
 
-                // Dessine soit une sinusoidale soit une ligne droite
-                if (isDrawingSinusoidal) {
-
-                    dessinSinusoidaleLine(x1, x2);
-
-                    // Une fois la sinusoidale dessinée, réinitialise le mode à false
-                    isDrawingSinusoidal = false;
-                } else {
-                    // Dessine une ligne droite au milieu Y
-                    StdDraw.line(x1, 0, x2, 0);
-                }
+                dessinLine(x1, x2);
             }
         } else if (mode.equals(modePoint)) {
 
@@ -305,20 +275,10 @@ public class DosSend {
                     isDrawingSinusoidal = true;
                 }
 
-                // Dessine soit une sinusoidale soit une ligne droite
-                if (isDrawingSinusoidal) {
-
-                    dessinSinusoidalePoint(x1, x2);
-
-                    // Une fois la sinusoidale dessinée, réinitialise le mode à false
-                    isDrawingSinusoidal = false;
-                } else {
-                    // Dessine une ligne droite au milieu
-                    StdDraw.line(x1, 0, x2, 0);
-                }
+                dessinPoint(x1, x2);
             }
         } else { // Si le mode n'est pas line ou point
-            System.out.println("Mode inconnu");
+            System.out.println(modeInconnu);
         }
 
     }
@@ -351,17 +311,7 @@ public class DosSend {
                         isDrawingSinusoidal = true;
                     }
 
-                    // Dessine soit une sinusoidale soit une ligne droite
-                    if (isDrawingSinusoidal) {
-                        // Permet de plus ou moins voir la sinusoidale
-                        dessinSinusoidalePoint(x1, x2);
-
-                        // Une fois la sinusoidale dessinée, réinitialise le mode à false
-                        isDrawingSinusoidal = false;
-                    } else {
-                        // Dessine une ligne droite au milieu Y
-                        StdDraw.line(x1, 0, x2, 0);
-                    }
+                    dessinLine(x1, x2);
                 }
 
             }
@@ -377,21 +327,11 @@ public class DosSend {
                         isDrawingSinusoidal = true;
                     }
 
-                    // Dessine soit une sinusoidale soit une ligne droite
-                    if (isDrawingSinusoidal) {
-
-                        dessinSinusoidalePoint(x1, x2);
-
-                        // Une fois la sinusoidale dessinée, réinitialise le mode à false
-                        isDrawingSinusoidal = false;
-                    } else {
-                        // Dessine une ligne droite au milieu Y
-                        StdDraw.line(x1, 0, x2, 0);
-                    }
+                    dessinPoint(x1, x2);
                 }
             }
         } else { // Si le mode n'est pas line ou point
-            System.out.println("Mode inconnu");
+            System.out.println(modeInconnu);
         }
 
     }
@@ -414,6 +354,14 @@ public class DosSend {
         }
     }
 
+    /**
+     * Dessine une sinusoidale
+     * 
+     * @param x1        abscisse de départ
+     * @param x2        abscisse de fin
+     * @param amplitude amplitude de la sinusoidale
+     * @param frequence fréquence de la sinusoidale
+     */
     public static void dessinSinusoidalePoint(double x1, double x2) {
         // dessiner la sinusoidale
         for (double t = x1; t < x2; t += 0.2) {
@@ -421,6 +369,47 @@ public class DosSend {
             StdDraw.line(t, y, t + 0.2, amplitude * Math.sin(2 * Math.PI * frequence * (t + 0.2))); // Dessine
             // la
             // sinusoidale
+        }
+    }
+
+    /**
+     * Dessine une sinusoidale ou une ligne droite
+     * 
+     * @param x1 abscisse de départ
+     * @param x2 abscisse de fin
+     */
+    public static void dessinLine(double x1, double x2) {
+        // Dessine soit une sinusoidale soit une ligne droite
+        if (isDrawingSinusoidal) {
+
+            dessinSinusoidaleLine(x1, x2);
+
+            // Une fois la sinusoidale dessinée, réinitialise le mode à false
+            isDrawingSinusoidal = false;
+        } else {
+            // Dessine une ligne droite au milieu Y
+            StdDraw.line(x1, 0, x2, 0);
+        }
+    }
+
+    /*
+     * Dessine une sinusoidale ou une ligne droite
+     * 
+     * @param x1 abscisse de départ
+     * 
+     * @param x2 abscisse de fin
+     */
+    public static void dessinPoint(double x1, double x2) {
+        // Dessine soit une sinusoidale soit une ligne droite
+        if (isDrawingSinusoidal) {
+
+            dessinSinusoidalePoint(x1, x2);
+
+            // Une fois la sinusoidale dessinée, réinitialise le mode à false
+            isDrawingSinusoidal = false;
+        } else {
+            // Dessine une ligne droite au milieu
+            StdDraw.point(x1, 0);
         }
     }
 
@@ -445,6 +434,7 @@ public class DosSend {
             StdDraw.line(i, -0.02, i, 0.02);
             StdDraw.text(i, -0.1, String.valueOf(i));
         }
+        StdDraw.setPenColor(StdDraw.BLUE);
     }
 
     public static void main(String[] args) {
