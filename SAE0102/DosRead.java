@@ -1,4 +1,4 @@
-
+import java.util.logging.Logger;
 import java.io.*;
 
 public class DosRead {
@@ -19,6 +19,9 @@ public class DosRead {
     public static final double AMPLITUDE = 0.9; // AMPLITUDE de la sinusoidale <= 1
 
     private static boolean isDrawingSinusoidal = false; // Dessiner ou non sinusoidale
+
+    // Créez un logger pour votre classe
+    private static final Logger logger = Logger.getLogger(DosSend.class.getName());
 
     /**
      * Constructor that opens the FIlEInputStream
