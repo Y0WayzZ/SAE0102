@@ -195,18 +195,20 @@ public class DosSend {
      * @param mode  "line" or "point"
      * @param title the title of the window
      */
-    public static void displaySig(double[] sig, int start, int stop, String mode, String title) {
+    public static void displaySig(int[] sig, int start, int stop, String mode, String title) {
         StdDraw.setCanvasSize(800, 400);
         StdDraw.setXscale(start, stop);
-        StdDraw.setYscale(-1000, 1000);
+        StdDraw.setYscale(-1, 1);
         StdDraw.setTitle(title);
 
         StdDraw.setPenColor(StdDraw.BLACK);
         StdDraw.line(start, 0, stop, 0);
+        StdDraw.text(start + 50, 0.9, String.valueOf(0.9)); // Affiche la hauteur de la porteuse
+        StdDraw.text(start + 50, -0.9, String.valueOf(-0.9));
         // Dessine la barre graduée
         for (int i = start; i < stop + 200; i += 200) {
-            StdDraw.line(i, -20, i, 20);
-            StdDraw.text(i, -100, String.valueOf(i));
+            StdDraw.line(i, -0.02, i, 0.02);
+            StdDraw.text(i, -0.1, String.valueOf(i));
         }
         StdDraw.setPenColor(StdDraw.BLUE);
 
@@ -219,7 +221,7 @@ public class DosSend {
                 double x2 = i + 1;
 
                 // Change le mode de dessin en fonction de la valeur de sig
-                if (sig[i] == 1000 && !isDrawingSinusoidal) {
+                if (sig[i] != 0 && !isDrawingSinusoidal) {
                     isDrawingSinusoidal = true;
                 }
 
@@ -227,13 +229,13 @@ public class DosSend {
                 if (isDrawingSinusoidal) {
                     // Permet de plus ou moins voir la sinusoidale
                     double frequence = 0.02;
-                    // Amplitude de la sinusoidale de 1000
-                    double amplitude = 900;
+                    // Amplitude de la sinusoidale <= 1
+                    double amplitude = 0.9;
 
                     // dessiner la sinusoidale
-                    for (double t = x1; t < x2; t += 0.01) {
+                    for (double t = x1; t < x2; t += 0.2) {
                         double y = amplitude * Math.sin(2 * Math.PI * frequence * t); // Calcul de l'ordonnée
-                        StdDraw.line(t, y, t + 0.01, amplitude * Math.sin(2 * Math.PI * frequence * (t + 0.01))); // Dessine
+                        StdDraw.line(t, y, t + 0.2, amplitude * Math.sin(2 * Math.PI * frequence * (t + 0.2))); // Dessine
                         // la
                         // sinusoidale
                     }
@@ -253,7 +255,7 @@ public class DosSend {
                 double x2 = i + 1;
 
                 // Change le mode de dessin en fonction de la valeur de sig
-                if (sig[i] == 1000 && !isDrawingSinusoidal) {
+                if (sig[i] != 0 && !isDrawingSinusoidal) {
                     isDrawingSinusoidal = true;
                 }
 
@@ -261,11 +263,11 @@ public class DosSend {
                 if (isDrawingSinusoidal) {
                     // Permet de plus ou moins voir la sinusoidale
                     double frequence = 0.02;
-                    // Amplitude de la sinusoidale de 1000
-                    double amplitude = 900;
+                    // Amplitude de la sinusoidale <= 1
+                    double amplitude = 0.9;
 
                     // dessiner la sinusoidale point par point
-                    for (double t = x1; t < x2; t += 0.01) {
+                    for (double t = x1; t < x2; t += 0.2) {
                         double y = amplitude * Math.sin(2 * Math.PI * frequence * t); // Calcul de l'ordonnée
                         StdDraw.point(t, y); // Dessine le point de la sinusoidale
                     }
@@ -274,6 +276,105 @@ public class DosSend {
                     isDrawingSinusoidal = false;
                 } else {
                     // Dessine une ligne droite au milieu Y
+                    StdDraw.line(x1, 0, x2, 0);
+                }
+            }
+        } else { // Si le mode n'est pas line ou point
+            System.out.println("Mode inconnu");
+        }
+
+    }
+
+    /**
+     * Display a signal in a window
+     * 
+     * @param sig   the signal to display
+     * @param start the first sample to display
+     * @param stop  the last sample to display
+     * @param mode  "line" or "point"
+     * @param title the title of the window
+     */
+    public static void displaySig(double[] sig, int start, int stop, String mode, String title) {
+        StdDraw.setCanvasSize(800, 400);
+        StdDraw.setXscale(start, stop);
+        StdDraw.setYscale(-1, 1);
+        StdDraw.setTitle(title);
+
+        StdDraw.setPenColor(StdDraw.BLACK);
+        StdDraw.line(start, 0, stop, 0);
+        StdDraw.text(start + 50, 0.9, String.valueOf(0.9)); // Affiche la hauteur de la porteuse
+        StdDraw.text(start + 50, -0.9, String.valueOf(-0.9));
+        // Dessine la barre graduée
+        for (int i = start; i < stop + 200; i += 200) {
+            StdDraw.line(i, -0.02, i, 0.02);
+            StdDraw.text(i, -0.1, String.valueOf(i));
+        }
+        StdDraw.setPenColor(StdDraw.BLUE);
+
+        // Dessine en fonction du mode
+        if (mode.equals("line")) {
+            boolean isDrawingSinusoidal = false;
+
+            for (int i = start; i < stop - 1; i++) {
+                double x1 = i;
+                double x2 = i + 1;
+
+                // Change le mode de dessin en fonction de la valeur de sig
+                if (sig[i] != 0 && !isDrawingSinusoidal) {
+                    isDrawingSinusoidal = true;
+                }
+
+                // Dessine soit une sinusoidale soit une ligne droite
+                if (isDrawingSinusoidal) {
+                    // Permet de plus ou moins voir la sinusoidale
+                    double frequence = 0.02;
+                    // Amplitude de la sinusoidale <= 1
+                    double amplitude = 0.9;
+
+                    // dessiner la sinusoidale
+                    for (double t = x1; t < x2; t += 0.2) {
+                        double y = amplitude * Math.sin(2 * Math.PI * frequence * t); // Calcul de l'ordonnée
+                        StdDraw.line(t, y, t + 0.2, amplitude * Math.sin(2 * Math.PI * frequence * (t + 0.2))); // Dessine
+                        // la
+                        // sinusoidale
+                    }
+
+                    // Une fois la sinusoidale dessinée, réinitialise le mode à false
+                    isDrawingSinusoidal = false;
+                } else {
+                    // Dessine une ligne droite au milieu Y
+                    StdDraw.line(x1, 0, x2, 0);
+                }
+            }
+        } else if (mode.equals("point")) {
+            boolean isDrawingSinusoidal = false;
+
+            for (int i = start; i < stop - 1; i++) {
+                double x1 = i;
+                double x2 = i + 1;
+
+                // Change le mode de dessin en fonction de la valeur de sig
+                if (sig[i] != 0 && !isDrawingSinusoidal) {
+                    isDrawingSinusoidal = true;
+                }
+
+                // Dessine soit une sinusoidale soit une ligne droite
+                if (isDrawingSinusoidal) {
+                    // Permet de plus ou moins voir la sinusoidale
+                    double frequence = 0.02;
+                    // Amplitude de la sinusoidale <= 1
+                    double amplitude = 0.9;
+
+                    // dessiner la sinusoidale point par point
+                    for (double t = x1; t < x2; t += 0.2) {
+                        double y = amplitude * Math.sin(2 * Math.PI * frequence * t); // Calcul de l'ordonnée
+                        StdDraw.point(t, y); // Dessine le point de la sinusoidale
+                    }
+
+                    // Une fois la sinusoidale dessinée, réinitialise le mode à false
+                    isDrawingSinusoidal = false;
+                } else {
+                    // Dessine une ligne droite au milieu
                     StdDraw.line(x1, 0, x2, 0);
                 }
             }
@@ -293,11 +394,7 @@ public class DosSend {
      * @param title      the title of the window
      */
     public static void displaySig(List<double[]> listOfSigs, int start, int stop, String mode, String title) {
-        StdDraw.setCanvasSize(800, 400);
         int largeur = listOfSigs.size() * (stop - start); // largeur de la fenêtre
-        StdDraw.setXscale(0, largeur);
-        StdDraw.setYscale(-1000, 1000);
-        StdDraw.setTitle(title);
 
         int index = 0; // index actuel dans le tableau sig
         double[] sig = new double[largeur]; // signal à afficher après concaténation
