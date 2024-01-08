@@ -3,6 +3,7 @@ import java.io.FileOutputStream;
 import java.util.Scanner;
 import java.util.List;
 import java.awt.Color;
+import java.util.logging.Logger;
 
 public class DosSend {
     final int FECH = 44100; // fréquence d'échantillonnage
@@ -27,6 +28,9 @@ public class DosSend {
     double[] dataMod; // données modulées
     char[] dataChar; // données en char
     FileOutputStream outStream; // flux de sortie pour le fichier .wav
+
+    // Créez un logger pour votre classe
+    private static final Logger logger = Logger.getLogger(DosSend.class.getName());
 
     /**
      * Constructor
@@ -203,40 +207,20 @@ public class DosSend {
      * @param title the title of the window
      */
     public static void displaySig(int[] sig, int start, int stop, String mode, String title) {
-        initializeCanvas(start, stop, title);
-
-        // Dessine en fonction du mode
-        if (mode.equals(MODELINE)) {
-
-            for (int i = start; i < stop - 1; i++) {
-                double x1 = i;
-                double x2 = i + 1.0;
-
-                // Change le mode de dessin en fonction de la valeur de sig
-                if (sig[i] != 0 && !isDrawingSinusoidal) {
-                    isDrawingSinusoidal = true;
-                }
-
-                dessinLine(x1, x2);
-            }
-        } else if (mode.equals(MODEPOINT)) {
-
-            for (int i = start; i < stop - 1; i++) {
-                double x1 = i;
-                double x2 = i + 1.0;
-
-                // Change le mode de dessin en fonction de la valeur de sig
-                if (sig[i] != 0 && !isDrawingSinusoidal) {
-                    isDrawingSinusoidal = true;
-                }
-
-                dessinPoint(x1, x2);
-            }
-        } else { // Si le mode n'est pas line ou point
+        if (!mode.equals(MODELINE) && !mode.equals(MODEPOINT)) { // Si le mode n'est pas line ou point
             printError(MODEINCONNU);
-
         }
-
+        initializeCanvas(start, stop, title);
+        for (int i = start; i < stop - 1; i++) {
+            double x1 = i;
+            double x2 = i + 1.0;
+            // Change le mode de dessin en fonction de la valeur de sig
+            if (sig[i] != 0 && !isDrawingSinusoidal) {
+                isDrawingSinusoidal = true;
+            }
+            // Dessine en fonction du mode
+            dessinSignal(mode, x1, x2);
+        }
     }
 
     /**
@@ -249,39 +233,20 @@ public class DosSend {
      * @param title the title of the window
      */
     public static void displaySig(double[] sig, int start, int stop, String mode, String title) {
-        initializeCanvas(start, stop, title);
-
-        // Dessine en fonction du mode
-        if (mode.equals(MODELINE)) {
-
-            for (int i = start; i < stop - 1; i++) {
-                double x1 = i;
-                double x2 = i + 1.0;
-
-                // Change le mode de dessin en fonction de la valeur de sig
-                if (sig[i] != 0 && !isDrawingSinusoidal) {
-                    isDrawingSinusoidal = true;
-                }
-
-                dessinLine(x1, x2);
-            }
-        } else if (mode.equals(MODEPOINT)) {
-
-            for (int i = start; i < stop - 1; i++) {
-                double x1 = i;
-                double x2 = i + 1.0;
-
-                // Change le mode de dessin en fonction de la valeur de sig
-                if (sig[i] != 0 && !isDrawingSinusoidal) {
-                    isDrawingSinusoidal = true;
-                }
-
-                dessinPoint(x1, x2);
-            }
-        } else { // Si le mode n'est pas line ou point
+        if (!mode.equals(MODELINE) && !mode.equals(MODEPOINT)) { // Si le mode n'est pas line ou point
             printError(MODEINCONNU);
         }
-
+        initializeCanvas(start, stop, title);
+        for (int i = start; i < stop - 1; i++) {
+            double x1 = i;
+            double x2 = i + 1.0;
+            // Change le mode de dessin en fonction de la valeur de sig
+            if (sig[i] != 0 && !isDrawingSinusoidal) {
+                isDrawingSinusoidal = true;
+            }
+            // Dessine en fonction du mode
+            dessinSignal(mode, x1, x2);
+        }
     }
 
     /**
@@ -294,44 +259,34 @@ public class DosSend {
      * @param title      the title of the window
      */
     public static void displaySig(List<double[]> listOfSigs, int start, int stop, String mode, String title) {
-        initializeCanvas(start, stop, title);
-
-        // Dessine en fonction du mode
-        if (mode.equals(MODELINE)) {
-            for (int j = 0; j < listOfSigs.size(); j++) {
-                changeCouleur(j % COLORS.length); // Change la couleur du signal en fonction de son index
-                for (int i = start; i < stop - 1; i++) {
-                    double x1 = i;
-                    double x2 = i + 1.0;
-
-                    // Change le mode de dessin en fonction de la valeur de sig
-                    if (listOfSigs.get(j)[i] != 0 && !isDrawingSinusoidal) {
-                        isDrawingSinusoidal = true;
-                    }
-
-                    dessinLine(x1, x2);
-                }
-
-            }
-        } else if (mode.equals(MODEPOINT)) {
-            for (int j = 0; j < listOfSigs.size(); j++) {
-                changeCouleur(j % COLORS.length); // Change la couleur du signal en fonction de son index
-                for (int i = start; i < stop - 1; i++) {
-                    double x1 = i;
-                    double x2 = i + 1.0;
-
-                    // Change le mode de dessin en fonction de la valeur de sig
-                    if (listOfSigs.get(j)[i] != 0 && !isDrawingSinusoidal) {
-                        isDrawingSinusoidal = true;
-                    }
-
-                    dessinPoint(x1, x2);
-                }
-            }
-        } else { // Si le mode n'est pas line ou point
+        if (!mode.equals(MODELINE) && !mode.equals(MODEPOINT)) { // Si le mode n'est pas line ou point
             printError(MODEINCONNU);
         }
+        initializeCanvas(start, stop, title);
 
+        for (int j = 0; j < listOfSigs.size(); j++) {
+            changeCouleur(j % COLORS.length); // Change la couleur du signal en fonction de son index
+            for (int i = start; i < stop - 1; i++) {
+                double x1 = i;
+                double x2 = i + 1.0;
+                // Change le mode de dessin en fonction de la valeur de sig
+                if (listOfSigs.get(j)[i] != 0 && !isDrawingSinusoidal) {
+                    isDrawingSinusoidal = true;
+                }
+                // Dessine en fonction du mode
+                dessinSignal(mode, x1, x2);
+            }
+        }
+
+    }
+
+    public static void dessinSignal(String mode, double x1, double x2) {
+        // Dessine en fonction du mode
+        if (mode.equals(MODELINE)) {
+            dessinLine(x1, x2);
+        } else {
+            dessinPoint(x1, x2);
+        }
     }
 
     /**
@@ -371,9 +326,9 @@ public class DosSend {
      */
     public static void dessinSinusoidalePoint(double x1, double x2) {
         // dessiner la sinusoidale
-        for (double t = x1; t < x2; t += 0.2) {
+        for (double t = x1; t < x2; t += 0.1) {
             double y = AMPLITUDE * Math.sin(2 * Math.PI * FREQUENCE * t); // Calcul de l'ordonnée
-            StdDraw.line(t, y, t + 0.2, AMPLITUDE * Math.sin(2 * Math.PI * FREQUENCE * (t + 0.2))); // Dessine
+            StdDraw.point(t, y); // Dessine le point de la sinusoidale
             // la
             // sinusoidale
         }
@@ -426,7 +381,8 @@ public class DosSend {
      * @param message message d'erreur
      */
     public static void printError(String message) {
-        System.out.println(message);
+        logger.warning(message);
+        System.exit(1); // Quitte le programme 1 pour erreur
     }
 
     /**
@@ -439,7 +395,6 @@ public class DosSend {
     public static void initializeCanvas(int start, int stop, String title) {
         if (start > stop) { // Vérifie que start est inférieur à stop
             printError("start doit être inférieur à stop");
-            return;
         }
 
         StdDraw.setCanvasSize(800, 400); // Définit la taille de la fenêtre
@@ -481,6 +436,5 @@ public class DosSend {
 
         // exemple d'affichage du signal modulé dans une fenêtre graphique
         displaySig(dosSend.dataMod, 1000, 3000, "line", "Signal modulé");
-
     }
 }
