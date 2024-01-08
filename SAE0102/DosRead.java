@@ -173,9 +173,10 @@ public class DosRead {
      * @param data the array to print
      */
     public static void printIntArray(char[] data) {
-        /*
-         * À compléter
-         */
+        for (int i = 0; i < data.length; i++) { // Parcours le tableau
+            System.out.print(data[i]); // Affiche l'élément à l'index i
+        }
+        System.out.println(""); // Saut de ligne
     }
 
     /**
@@ -188,9 +189,93 @@ public class DosRead {
      * @param title the title of the window
      */
     public static void displaySig(double[] sig, int start, int stop, String mode, String title) {
-        /*
-         * À compléter. Méthode a priori identique à sa version dans DosSend.
-         */
+        StdDraw.setCanvasSize(800, 400);
+        StdDraw.setXscale(start, stop);
+        StdDraw.setYscale(-1, 1);
+        StdDraw.setTitle(title);
+
+        StdDraw.setPenColor(StdDraw.BLACK);
+        StdDraw.line(start, 0, stop, 0);
+        StdDraw.text(start + 50, 0.9, String.valueOf(0.9)); // Affiche la hauteur de la porteuse
+        StdDraw.text(start + 50, -0.9, String.valueOf(-0.9));
+        // Dessine la barre graduée
+        for (int i = start; i < stop + 200; i += 200) {
+            StdDraw.line(i, -0.02, i, 0.02);
+            StdDraw.text(i, -0.1, String.valueOf(i));
+        }
+        StdDraw.setPenColor(StdDraw.BLUE);
+
+        // Dessine en fonction du mode
+        if (mode.equals("line")) {
+            boolean isDrawingSinusoidal = false;
+
+            for (int i = start; i < stop - 1; i++) {
+                double x1 = i;
+                double x2 = i + 1;
+
+                // Change le mode de dessin en fonction de la valeur de sig
+                if (sig[i] != 0 && !isDrawingSinusoidal) {
+                    isDrawingSinusoidal = true;
+                }
+
+                // Dessine soit une sinusoidale soit une ligne droite
+                if (isDrawingSinusoidal) {
+                    // Permet de plus ou moins voir la sinusoidale
+                    double frequence = 0.02;
+                    // Amplitude de la sinusoidale <= 1
+                    double amplitude = 0.9;
+
+                    // dessiner la sinusoidale
+                    for (double t = x1; t < x2; t += 0.2) {
+                        double y = amplitude * Math.sin(2 * Math.PI * frequence * t); // Calcul de l'ordonnée
+                        StdDraw.line(t, y, t + 0.2, amplitude * Math.sin(2 * Math.PI * frequence * (t + 0.2))); // Dessine
+                        // la
+                        // sinusoidale
+                    }
+
+                    // Une fois la sinusoidale dessinée, réinitialise le mode à false
+                    isDrawingSinusoidal = false;
+                } else {
+                    // Dessine une ligne droite au milieu Y
+                    StdDraw.line(x1, 0, x2, 0);
+                }
+            }
+        } else if (mode.equals("point")) {
+            boolean isDrawingSinusoidal = false;
+
+            for (int i = start; i < stop - 1; i++) {
+                double x1 = i;
+                double x2 = i + 1;
+
+                // Change le mode de dessin en fonction de la valeur de sig
+                if (sig[i] != 0 && !isDrawingSinusoidal) {
+                    isDrawingSinusoidal = true;
+                }
+
+                // Dessine soit une sinusoidale soit une ligne droite
+                if (isDrawingSinusoidal) {
+                    // Permet de plus ou moins voir la sinusoidale
+                    double frequence = 0.02;
+                    // Amplitude de la sinusoidale <= 1
+                    double amplitude = 0.9;
+
+                    // dessiner la sinusoidale point par point
+                    for (double t = x1; t < x2; t += 0.2) {
+                        double y = amplitude * Math.sin(2 * Math.PI * frequence * t); // Calcul de l'ordonnée
+                        StdDraw.point(t, y); // Dessine le point de la sinusoidale
+                    }
+
+                    // Une fois la sinusoidale dessinée, réinitialise le mode à false
+                    isDrawingSinusoidal = false;
+                } else {
+                    // Dessine une ligne droite au milieu
+                    StdDraw.line(x1, 0, x2, 0);
+                }
+            }
+        } else { // Si le mode n'est pas line ou point
+            System.out.println("Mode inconnu");
+        }
+
     }
 
     /**
