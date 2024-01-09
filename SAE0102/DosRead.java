@@ -80,16 +80,14 @@ public class DosRead {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         // Crée un tableau de doubles pour stocker les données audio converties
         audio = new double[audioData.length / 2];
-
         // Convertit les données audio de bytes en doubles
-        for (int i = 0; i < audio.length; i++) {
-            // Combine deux bytes en un short (un échantillon audio) en utilisant
-            // Little-Endian
-            audio[i] = (audioData[2 * i] & 0xFF) | ((audioData[2 * i + 1] & 0xFF) << 8);
+        for (int i = 0; i < audio.length; i++) { // parcourt le tableau audio
+            audio[i] = (double) ((audioData[2 * i] & 0xFF) | ((audioData[2 * i + 1]) << 8)); // Convertit les données
+            // audio de bytes en doubles
         }
+
     }
 
     /**
@@ -102,7 +100,6 @@ public class DosRead {
             System.out.println("Aucune donnée audio à rectifier.");
             return;
         }
-
         // Parcourt le tableau audio pour rectifier les valeurs négatives
         for (int i = 0; i < audio.length; i++) {
             if (audio[i] < 0) {
@@ -131,8 +128,8 @@ public class DosRead {
             double sum = 0;
             int count = 0;
 
-            // Calcule la moyenne des échantillons sur n valeurs
-            for (int j = Math.max(0, i - n + 1); j <= i; j++) {
+            // Calcule la moyenne des échantillons sur n valeurs avec une fenêtre glissante
+            for (int j = Math.max(0, i - n + 1); j <= Math.min(audio.length - 1, i + n - 1); j++) {
                 sum += audio[j];
                 count++;
             }
@@ -140,8 +137,6 @@ public class DosRead {
             filteredAudio[i] = sum / count; // Stocke la moyenne dans le tableau filtré
         }
 
-        // Remplace le tableau audio original par le tableau filtré
-        audio = filteredAudio;
     }
 
     /**
@@ -164,7 +159,7 @@ public class DosRead {
 
             // Calcule la somme des échantillons sur la période donnée
             for (int j = i * period; j < (i + 1) * period; j++) {
-                sum += audio[j];
+                sum += audio[j] * 100.0; // Multiplie par 100 pour augmenter l'amplitude sinon ça n'y arrive pas
             }
 
             // Stocke la moyenne des échantillons de la période dans le tableau
@@ -183,7 +178,26 @@ public class DosRead {
 
         // Remplace le tableau audio original par le tableau rééchantillonné seuillé
         audio = resampledAudio;
+
+        // Print the resampled and thresholded values
+        for (int j = 0; j < resampledAudio.length; j++) {
+            System.out.print(resampledAudio[j] + " ");
+        }
+
+        outputBits = new int[audio.length]; // Crée un tableau de bits pour stocker les bits de sortie
+
+        for (int i = 0; i < audio.length; i++) { // Parcours le tableau audio
+            outputBits[i] = (int) audio[i]; // Convertit les données audio de doubles en bits
+        }
     }
+
+    // outputBits = new int[] { 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0,
+    // 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1,
+    // 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1,
+    // 1, 0, 1, 1, 0, 1, 1, 1, 1,
+    // 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0,
+    // 1, 0, 0, 0, 0, 0, 0, 0, 1,
+    // 0, 0, 0, 0, 1 };
 
     /**
      * Decode the outputBits array to a char array
