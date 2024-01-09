@@ -1,3 +1,7 @@
+// Genitrini James B2
+// Contino Corentin B1
+
+// Importation des librairies
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Scanner;
@@ -141,15 +145,13 @@ public class DosSend {
      * @return the number of characters read
      */
     public int readTextData() {
-        String fullText = ""; // Pour créer une chaîne de caractères à partir du fichier texte
-        while (input.hasNextLine()) { // Lis chaque ligne du fichier texte
-            String ligne = input.nextLine(); // Récupère une ligne
-            fullText += ligne; // Concatène les lignes dans une grande chaîne de caractères
+        StringBuilder fullTextBuilder = new StringBuilder(); // Permet de concaténer les lignes du fichier
+        while (input.hasNextLine()) { // Tant qu'il y a une ligne à lire
+            String ligne = input.nextLine(); // Lit la ligne
+            fullTextBuilder.append(ligne); // Ajoute la ligne au StringBuilder
         }
-        dataChar = fullText.toCharArray(); // Crée un tableau de char de la taille de la chaîne de caractères
-
-        return dataChar.length; // Renvoie la taille du tableau de char soit le nombre de caractères du fichier
-                                // texte
+        dataChar = fullTextBuilder.toString().toCharArray(); // Convertit le StringBuilder en char array
+        return dataChar.length; // Retourne le nombre de caractères lus
     }
 
     /**
@@ -393,26 +395,26 @@ public class DosSend {
     public static void initializeCanvas(int start, int stop, String title, String mode) {
         if (start > stop) { // Vérifie que start est inférieur à stop
             printError("start doit être inférieur à stop");
-        }
+        } else {
+            if (!mode.equals(MODELINE) && !mode.equals(MODEPOINT)) { // Si le mode n'est pas line ou point
+                printError(MODEINCONNU);
+            }
 
-        if (!mode.equals(MODELINE) && !mode.equals(MODEPOINT)) { // Si le mode n'est pas line ou point
-            printError(MODEINCONNU);
+            StdDraw.setCanvasSize(800, 400); // Définit la taille de la fenêtre
+            StdDraw.setXscale(start, stop); // Définit l'échelle des abscisses
+            StdDraw.setYscale(-1, 1); // Définit l'échelle des ordonnées
+            StdDraw.setTitle(title); // Définit le titre de la fenêtre
+            StdDraw.setPenColor(StdDraw.BLACK);
+            StdDraw.line(start, 0, stop, 0); // Dessine l'axe des abscisses
+            StdDraw.text(start + 50.0, 0.9, String.valueOf(0.9)); // Affiche la hauteur de la porteuse
+            StdDraw.text(start + 50.0, -0.9, String.valueOf(-0.9));
+            // Dessine la barre graduée
+            for (int i = start; i < stop + 200; i += 200) {
+                StdDraw.line(i, -0.02, i, 0.02);
+                StdDraw.text(i, -0.1, String.valueOf(i));
+            }
+            StdDraw.setPenColor(StdDraw.BLUE);
         }
-
-        StdDraw.setCanvasSize(800, 400); // Définit la taille de la fenêtre
-        StdDraw.setXscale(start, stop); // Définit l'échelle des abscisses
-        StdDraw.setYscale(-1, 1); // Définit l'échelle des ordonnées
-        StdDraw.setTitle(title); // Définit le titre de la fenêtre
-        StdDraw.setPenColor(StdDraw.BLACK);
-        StdDraw.line(start, 0, stop, 0); // Dessine l'axe des abscisses
-        StdDraw.text(start + 50, 0.9, String.valueOf(0.9)); // Affiche la hauteur de la porteuse
-        StdDraw.text(start + 50, -0.9, String.valueOf(-0.9));
-        // Dessine la barre graduée
-        for (int i = start; i < stop + 200; i += 200) {
-            StdDraw.line(i, -0.02, i, 0.02);
-            StdDraw.text(i, -0.1, String.valueOf(i));
-        }
-        StdDraw.setPenColor(StdDraw.BLUE);
     }
 
     public static void main(String[] args) {
