@@ -17,7 +17,7 @@ public class DosRead {
     public static final String MODEINCONNU = "mode inconnu"; // Mode inconnu
     public static final String MODELINE = "line"; // Mode line
     public static final String MODEPOINT = "point"; // Mode point
-    public static final double FREQUENCE = 0.02; // Permet de plus ou moins voir la sinusoidale
+    public static final double FREQUENCE = 1.0; // Permet de plus ou moins voir la sinusoidale
     public static final double AMPLITUDE = 0.9; // AMPLITUDE de la sinusoidale <= 1
 
     private static boolean isDrawingSinusoidal = false; // Dessiner ou non sinusoidale
@@ -395,8 +395,8 @@ public class DosRead {
         StdDraw.setTitle(title); // Définit le titre de la fenêtre
         StdDraw.setPenColor(StdDraw.BLACK);
         StdDraw.line(start, 0, stop, 0); // Dessine l'axe des abscisses
-        StdDraw.text(start + 50, 0.9, String.valueOf(0.9)); // Affiche la hauteur de la porteuse
-        StdDraw.text(start + 50, -0.9, String.valueOf(-0.9));
+        StdDraw.text(start + 5, 0.9, String.valueOf(0.9)); // Affiche la hauteur de la porteuse
+        StdDraw.text(start + 5, -0.9, String.valueOf(-0.9));
         // Dessine la barre graduée
         for (int i = start; i < stop + 200; i += 200) {
             StdDraw.line(i, -0.02, i, 0.02);
