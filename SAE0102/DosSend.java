@@ -1,21 +1,17 @@
-import java.io.File;
-import java.io.FileOutputStream;
-import java.util.Scanner;
-import java.util.List;
-import java.awt.Color;
 import java.util.logging.Logger;
+import java.io.*;
 
-public class DosSend {
-    final int FECH = 44100; // fréquence d'échantillonnage
-    final int FP = 1000; // fréquence de la porteuses
-    final int BAUDS = 100; // débit en symboles par seconde
-    final int FMT = 16; // format des données
-    final int MAX_AMP = (1 << (FMT - 1)) - 1; // AMPLITUDE max en entier
-    final int CHANNELS = 1; // nombre de voies audio (1 = mono)
-    final int[] START_SEQ = { 1, 0, 1, 0, 1, 0, 1, 0 }; // séquence de synchro au début
-    final Scanner input = new Scanner(System.in); // pour lire le fichier texte
-
-    private static final Color[] COLORS = { StdDraw.BLUE, StdDraw.RED, StdDraw.GREEN, StdDraw.YELLOW, StdDraw.ORANGE }; // Tableau
+public class DosRead {
+    static final int FP = 1000;
+    static final int BAUDS = 100;
+    static final int[] START_SEQ = { 1, 0, 1, 0, 1, 0, 1, 0 };
+    FileInputStream fileInputStream;
+    int sampleRate = 44100;
+    int bitsPerSample;
+    int dataSize;
+    double[] audio;
+    int[] outputBits;
+    char[] decodedChars;
     public static final String MODEINCONNU = "mode inconnu"; // Mode inconnu
     public static final String MODELINE = "line"; // Mode line
     public static final String MODEPOINT = "point"; // Mode point
@@ -23,201 +19,239 @@ public class DosSend {
     public static final double AMPLITUDE = 0.9; // AMPLITUDE de la sinusoidale <= 1
 
     private static boolean isDrawingSinusoidal = false; // Dessiner ou non sinusoidale
-    long taille; // nombre d'octets de données à transmettre
-    double duree; // durée de l'audio
-    double[] dataMod; // données modulées
-    char[] dataChar; // données en char
-    FileOutputStream outStream; // flux de sortie pour le fichier .wav
 
     // Créez un logger pour votre classe
     private static final Logger logger = Logger.getLogger(DosSend.class.getName());
 
     /**
-     * Constructor
+     * Constructor that opens the FIlEInputStream
+     * and reads sampleRate, bitsPerSample and dataSize
+     * from the header of the wav file
      * 
-     * @param path the path of the wav file to create
+     * @param path the path of the wav file to read
      */
-    public DosSend(String path) {
-        File file = new File(path);
+    public void readWavHeader(String path) {
+        byte[] header = new byte[44]; // The header is 44 bytes long
         try {
-            outStream = new FileOutputStream(file);
-        } catch (Exception e) {
-            System.out.println("Erreur de création du fichier");
+            fileInputStream = new FileInputStream(path);
+            fileInputStream.read(header);
+
+            // Extraction des informations du header
+            sampleRate = byteArrayToInt(header, 24, 32); // Taux d'échantillonnage
+            bitsPerSample = byteArrayToInt(header, 34, 16); // Bits par échantillon
+            dataSize = byteArrayToInt(header, 40, 32); // Taille des données
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
     /**
-     * Write a raw 4-byte integer in little endian
+     * Helper method to convert a little-endian byte array to an integer
      * 
-     * @param octets     the integer to write
-     * @param destStream the stream to write in
+     * @param bytes  the byte array to convert
+     * @param offset the offset in the byte array
+     * @param fmt    the format of the integer (16 or 32 bits)
+     * @return the integer value
      */
-    public void writeLittleEndian(int octets, int taille, FileOutputStream destStream) {
-        char poidsFaible;
-        while (taille > 0) {
-            poidsFaible = (char) (octets & 0xFF);
-            try {
-                destStream.write(poidsFaible);
-            } catch (Exception e) {
-                System.out.println("Erreur d'écriture");
-            }
-            octets = octets >> 8;
-            taille--;
-        }
+    private static int byteArrayToInt(byte[] bytes, int offset, int fmt) {
+        if (fmt == 16)
+            return ((bytes[offset + 1] & 0xFF) << 8) | (bytes[offset] & 0xFF);
+        else if (fmt == 32)
+            return ((bytes[offset + 3] & 0xFF) << 24) |
+                    ((bytes[offset + 2] & 0xFF) << 16) |
+                    ((bytes[offset + 1] & 0xFF) << 8) |
+                    (bytes[offset] & 0xFF);
+        else
+            return (bytes[offset] & 0xFF);
     }
 
     /**
-     * Create and write the header of a wav file
-     *
+     * Read the audio data from the wav file
+     * and convert it to an array of doubles
+     * that becomes the audio attribute
      */
-    public void writeWavHeader() {
-        taille = (long) (FECH * duree);
-        long nbBytes = taille * CHANNELS * FMT / 8;
-
+    public void readAudioDouble() {
+        byte[] audioData = new byte[dataSize];
         try {
-            // [Bloc de déclaration d'un fichier au format WAVE]
-            // FileTypeBlocID
-            outStream.write(new byte[] { 'R', 'I', 'F', 'F' });
-            // FileSize
-            writeLittleEndian((int) (nbBytes + 36), 4, outStream);
-            // FileFormatID
-            outStream.write(new byte[] { 'W', 'A', 'V', 'E' });
-            // [Bloc décrivant le format audio]
-            // FormatBlocID
-            outStream.write(new byte[] { 'f', 'm', 't', ' ' });
-            // BlocSize
-            writeLittleEndian(16, 4, outStream);
-            // AudioFormat (2 octets) : Format du stockage dans le fichier (1: PCM entier,
-            // 3: PCM flottant, 65534: étendu)
-            writeLittleEndian(1, 2, outStream); // PCM entier
-            // NumChannels (2 octets) : Nombre de canaux (1 pour mono, 2 pour stéréo, etc.)
-            writeLittleEndian(CHANNELS, 2, outStream);
-            // SampleRate (4 octets) : Fréquence d'échantillonnage (en Hz)
-            writeLittleEndian(FECH, 4, outStream);
-            // ByteRate (4 octets) : Débit binaire (nombre d'octets par seconde)
-            writeLittleEndian(FECH * CHANNELS * FMT / 8, 4, outStream);
-            // BlockAlign (2 octets) : Nombre d'octets pour un échantillon, tous canaux
-            // confondus
-            writeLittleEndian(CHANNELS * FMT / 8, 2, outStream);
-            // BitsPerSample (2 octets) : Bits par échantillon (par canal)
-            writeLittleEndian(FMT, 2, outStream);
-            // [Bloc des données]
-            // DataBlocID
-            outStream.write(new byte[] { 'd', 'a', 't', 'a' });
-            // DataSize (4 octets) : Taille des données audio (en octets)
-            writeLittleEndian((int) nbBytes, 4, outStream);
-
-        } catch (Exception e) {
-            e.toString();
+            fileInputStream.read(audioData);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+        // Crée un tableau de doubles pour stocker les données audio converties
+        audio = new double[audioData.length / 2];
+        // Convertit les données audio de bytes en doubles
+        for (int i = 0; i < audio.length; i++) { // parcourt le tableau audio
+            audio[i] = (double) ((audioData[2 * i] & 0xFF) | ((audioData[2 * i + 1]) << 8)); // Convertit les données
+            // audio de bytes en doubles
+        }
+
     }
 
     /**
-     * Write the data in the wav file
-     * after normalizing its AMPLITUDE to the maximum value of the format (8 bits
-     * signed)
+     * Reverse the negative values of the audio array
      */
-    public void writeNormalizeWavData() {
-        try {
-            for (int i = 0; i < dataMod.length; i++) {
-                double sample = dataMod[i];
-                // Normalisation des échantillons entre -1 et 1
-                double normalizedSample = sample / MAX_AMP;
 
-                // Quantification de l'échantillon dans la plage du format PCM 16 bits
-                int quantizedSample = (int) (normalizedSample * MAX_AMP);
-
-                // Écriture des échantillons normalisés dans le fichier .wav
-                writeLittleEndian(quantizedSample, FMT / 8, outStream);
-            }
-        } catch (Exception e) {
-            System.out.println("Erreur d'écriture");
+    public void audioRectifier() {
+        // Vérifie si le tableau audio est vide ou null
+        if (audio == null || audio.length == 0) {
+            System.out.println("Aucune donnée audio à rectifier.");
+            return;
         }
-    }
-
-    /**
-     * Read the text data to encode and store them into dataChar
-     * 
-     * @return the number of characters read
-     */
-    public int readTextData() {
-        String fullText = ""; // Pour créer une chaîne de caractères à partir du fichier texte
-        while (input.hasNextLine()) { // Lis chaque ligne du fichier texte
-            String ligne = input.nextLine(); // Récupère une ligne
-            fullText += ligne; // Concatène les lignes dans une grande chaîne de caractères
-        }
-        dataChar = fullText.toCharArray(); // Crée un tableau de char de la taille de la chaîne de caractères
-
-        return dataChar.length; // Renvoie la taille du tableau de char soit le nombre de caractères du fichier
-                                // texte
-    }
-
-    /**
-     * convert a char array to a bit array
-     * 
-     * @param chars
-     * @return byte array containing only 0 & 1
-     */
-    public byte[] charToBits(char[] chars) {
-        byte[] result = new byte[chars.length * 8]; // Chaque char est sur 8 bits (1 octets)
-
-        for (int i = 0; i < chars.length; i++) {
-            char c = chars[i];
-            int index = i * 8; // Index dans le tableau résultant
-            for (int j = 7; j >= 0; j--) { // Parcours de chaque bit dans le char
-                result[index + j] = (byte) (c & 1); // Extraction du bit de poids faible
-                c >>= 1; // Décalage du char d'un bit vers la droite
+        // Parcourt le tableau audio pour rectifier les valeurs négatives
+        for (int i = 0; i < audio.length; i++) {
+            if (audio[i] < 0) {
+                audio[i] = -audio[i]; // Remplace les valeurs négatives par leur valeur absolue (positive)
             }
         }
-
-        return result;
     }
 
     /**
-     * Modulate the data to send and apply the symbol throughput via BAUDS and FECH.
+     * Apply a low pass filter to the audio array
+     * Fc = (1/2n)*FECH
      * 
-     * @param bits the data to modulate
+     * @param n the number of samples to average
      */
-    public void modulateData(byte[] bits) {
-        double dureeSymbole = 1.0 / BAUDS; // Durée d'un symbole en secondes
-        int echantillonsParSymbole = (int) (dureeSymbole * FECH); // Nombre d'échantillons par symbole
-
-        dataMod = new double[bits.length * echantillonsParSymbole + START_SEQ.length]; // + START_SEQ.length pour le
-                                                                                       // préfixe
-
-        // Ajout du préfixe
-        for (int i = 0; i < START_SEQ.length; i++) { // Parcours du préfixe donné
-            dataMod[i] = START_SEQ[i] * (double) FP;
+    public void audioLPFilter(int n) {
+        // Vérifie si le tableau audio est vide ou null
+        if (audio == null || audio.length == 0) {
+            System.out.println("Aucune donnée audio à filtrer.");
+            return;
         }
 
-        // Modulation des données
-        for (int i = START_SEQ.length; i < bits.length * echantillonsParSymbole + START_SEQ.length; i++) {
-            int bitIndex = (i - START_SEQ.length) / echantillonsParSymbole;
-            dataMod[i] = bits[bitIndex] * (double) FP;
-        }
-    }
+        double[] filteredAudio = new double[audio.length];
 
-    /**
-     * Display a signal in a window
-     * 
-     * @param sig   the signal to display
-     * @param start the first sample to display
-     * @param stop  the last sample to display
-     * @param mode  "line" or "point"
-     * @param title the title of the window
-     */
-    public static void displaySig(int[] sig, int start, int stop, String mode, String title) {
-        initializeCanvas(start, stop, title, mode);
-        for (int i = start; i < stop - 1; i++) {
-            double x1 = i;
-            double x2 = i + 1.0;
-            // Change le mode de dessin en fonction de la valeur de sig
-            if (sig[i] != 0 && !isDrawingSinusoidal) {
-                isDrawingSinusoidal = true;
+        // Applique le filtre passe-bas en utilisant une moyenne sur n échantillons
+        for (int i = 0; i < audio.length; i++) {
+            double sum = 0;
+            int count = 0;
+
+            // Calcule la moyenne des échantillons sur n valeurs avec une fenêtre glissante
+            for (int j = Math.max(0, i - n + 1); j <= Math.min(audio.length - 1, i + n - 1); j++) {
+                sum += audio[j];
+                count++;
             }
-            // Dessine en fonction du mode
-            dessinSignal(mode, x1, x2);
+
+            filteredAudio[i] = sum / count; // Stocke la moyenne dans le tableau filtré
         }
+
+    }
+
+    /**
+     * Resample the audio array and apply a threshold
+     * 
+     * @param period    the number of audio samples by symbol
+     * @param threshold the threshold that separates 0 and 1
+     */
+    public void audioResampleAndThreshold(int period, int threshold) {
+        // Vérifie si le tableau audio est vide ou null
+        if (audio == null || audio.length == 0) {
+            System.out.println("Aucune donnée audio à rééchantillonner et à seuiller.");
+            return;
+        }
+
+        // Rééchantillonnage du tableau audio
+        double[] resampledAudio = new double[audio.length / period];
+        for (int i = 0; i < resampledAudio.length; i++) {
+            double sum = 0;
+
+            // Calcule la somme des échantillons sur la période donnée
+            for (int j = i * period; j < (i + 1) * period; j++) {
+                sum += audio[j] * 100.0; // Multiplie par 100 pour augmenter l'amplitude sinon ça n'y arrive pas
+            }
+
+            // Stocke la moyenne des échantillons de la période dans le tableau
+            // rééchantillonné
+            resampledAudio[i] = sum / period;
+        }
+
+        // Applique le seuil au tableau rééchantillonné
+        for (int i = 0; i < resampledAudio.length; i++) {
+            if (resampledAudio[i] >= threshold) {
+                resampledAudio[i] = 1; // Valeur haute (1)
+            } else {
+                resampledAudio[i] = 0; // Valeur basse (0)
+            }
+        }
+
+        // Remplace le tableau audio original par le tableau rééchantillonné seuillé
+        audio = resampledAudio;
+
+        // Print the resampled and thresholded values
+        for (int j = 0; j < resampledAudio.length; j++) {
+            System.out.print(resampledAudio[j] + " ");
+        }
+
+        outputBits = new int[audio.length]; // Crée un tableau de bits pour stocker les bits de sortie
+
+        for (int i = 0; i < audio.length; i++) { // Parcours le tableau audio
+            outputBits[i] = (int) audio[i]; // Convertit les données audio de doubles en bits
+        }
+    }
+
+    // outputBits = new int[] { 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0,
+    // 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1,
+    // 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1,
+    // 1, 0, 1, 1, 0, 1, 1, 1, 1,
+    // 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0,
+    // 1, 0, 0, 0, 0, 0, 0, 0, 1,
+    // 0, 0, 0, 0, 1 };
+
+    /**
+     * Decode the outputBits array to a char array
+     * The decoding is done by comparing the START_SEQ with the actual beginning of
+     * outputBits.
+     * The next first symbol is the first bit of the first char.
+     */
+
+    public void decodeBitsToChar() {
+        if (outputBits == null || outputBits.length == 0) {
+            System.out.println("Aucune donnée de sortie à décoder.");
+            return;
+        }
+
+        StringBuilder decodedString = new StringBuilder();
+        int startIndex = 0;
+
+        // Recherche de la séquence START_SEQ dans outputBits
+        for (int i = 0; i < outputBits.length - START_SEQ.length; i++) {
+            boolean matchFound = true;
+            for (int j = 0; j < START_SEQ.length; j++) {
+                if (outputBits[i + j] != START_SEQ[j]) {
+                    matchFound = false;
+                    break;
+                }
+            }
+            if (matchFound) {
+                startIndex = i + START_SEQ.length;
+                break;
+            }
+        }
+
+        // Lecture des bits après la séquence START_SEQ pour former les caractères
+        for (int i = startIndex; i < outputBits.length; i += 8) {
+            int byteVal = 0;
+            for (int j = 0; j < 8; j++) {
+                byteVal = (byteVal << 1) | outputBits[i + j];
+            }
+            decodedString.append((char) byteVal);
+        }
+
+        decodedChars = decodedString.toString().toCharArray();
+    }
+
+    /**
+     * Print the elements of an array
+     * 
+     * @param data the array to print
+     */
+    public static void printIntArray(char[] data) {
+        for (int i = 0; i < data.length; i++) { // Parcours le tableau
+            System.out.print(data[i]); // Affiche l'élément à l'index i
+        }
+        System.out.println(""); // Saut de ligne
     }
 
     /**
@@ -244,35 +278,6 @@ public class DosSend {
     }
 
     /**
-     * Display signals in a window
-     * 
-     * @param listOfSigs a list of the signals to display
-     * @param start      the first sample to display
-     * @param stop       the last sample to display
-     * @param mode       "line" or "point"
-     * @param title      the title of the window
-     */
-    public static void displaySig(List<double[]> listOfSigs, int start, int stop, String mode, String title) {
-
-        initializeCanvas(start, stop, title, mode);
-
-        for (int j = 0; j < listOfSigs.size(); j++) {
-            changeCouleur(j % COLORS.length); // Change la couleur du signal en fonction de son index
-            for (int i = start; i < stop - 1; i++) {
-                double x1 = i;
-                double x2 = i + 1.0;
-                // Change le mode de dessin en fonction de la valeur de sig
-                if (listOfSigs.get(j)[i] != 0 && !isDrawingSinusoidal) {
-                    isDrawingSinusoidal = true;
-                }
-                // Dessine en fonction du mode
-                dessinSignal(mode, x1, x2);
-            }
-        }
-
-    }
-
-    /**
      * Dessine en fonction du mode
      * 
      * @param mode mode de dessin
@@ -286,15 +291,6 @@ public class DosSend {
         } else {
             dessinPoint(x1, x2);
         }
-    }
-
-    /**
-     * Change la couleur du signal en fonction de son index
-     * 
-     * @param index index du signal
-     */
-    public static void changeCouleur(int index) {
-        StdDraw.setPenColor(COLORS[index]); // Change la couleur du signal en fonction de son index
     }
 
     /**
@@ -416,28 +412,49 @@ public class DosSend {
         StdDraw.setPenColor(StdDraw.BLUE);
     }
 
+    /**
+     * Un exemple de main qui doit pourvoir être exécuté avec les méthodes
+     * que vous aurez conçues.
+     */
     public static void main(String[] args) {
-        // créé un objet DosSend
-        DosSend dosSend = new DosSend("DosOok_message.wav");
-        // lit le texte à envoyer depuis l'entrée standard
-        // et calcule la durée de l'audio correspondant
-        dosSend.duree = (double) (dosSend.readTextData() + dosSend.START_SEQ.length / 8.0) * 8.0 / dosSend.BAUDS;
+        if (args.length != 1) {
+            System.out.println("Usage: java DosRead <input_wav_file>");
+            return;
+        }
+        String wavFilePath = args[0];
 
-        // génère le signal modulé après avoir converti les données en bits
-        dosSend.modulateData(dosSend.charToBits(dosSend.dataChar));
-        // écrit l'entête du fichier wav
-        dosSend.writeWavHeader();
-        // écrit les données audio dans le fichier wav
-        dosSend.writeNormalizeWavData();
+        // Open the WAV file and read its header
+        DosRead dosRead = new DosRead();
+        dosRead.readWavHeader(wavFilePath);
 
-        // affiche les caractéristiques du signal dans la console
-        System.out.println("Message : " + String.valueOf(dosSend.dataChar));
-        System.out.println("\tNombre de symboles : " + dosSend.dataChar.length);
-        System.out.println("\tNombre d'échantillons : " + dosSend.dataMod.length);
-        System.out.println("\tDurée : " + dosSend.duree + " s");
-        System.out.println();
+        // Print the audio data properties
+        System.out.println("Fichier audio: " + wavFilePath);
+        System.out.println("\tSample Rate: " + dosRead.sampleRate + " Hz");
+        System.out.println("\tBits per Sample: " + dosRead.bitsPerSample + " bits");
+        System.out.println("\tData Size: " + dosRead.dataSize + " bytes");
 
-        // exemple d'affichage du signal modulé dans une fenêtre graphique
-        displaySig(dosSend.dataMod, 1000, 3000, "line", "Signal modulé");
+        // Read the audio data
+        dosRead.readAudioDouble();
+        // reverse the negative values
+        dosRead.audioRectifier();
+        // apply a low pass filter
+        dosRead.audioLPFilter(44);
+        // Resample audio data and apply a threshold to output only 0 & 1
+        dosRead.audioResampleAndThreshold(dosRead.sampleRate / BAUDS, 12000);
+
+        dosRead.decodeBitsToChar();
+        if (dosRead.decodedChars != null) {
+            System.out.print("Message décodé : ");
+            printIntArray(dosRead.decodedChars);
+        }
+
+        displaySig(dosRead.audio, 0, dosRead.audio.length - 1, "line", "Signal audio");
+
+        // Close the file input stream
+        try {
+            dosRead.fileInputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
