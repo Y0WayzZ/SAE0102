@@ -106,11 +106,12 @@ public class DosRead {
         // Vérifie si le tableau audio est vide ou null
         if (audio == null || audio.length == 0) {
             printError(ERREURAUDIO);
-        }
-        // Parcourt le tableau audio pour rectifier les valeurs négatives
-        for (int i = 0; i < audio.length; i++) {
-            if (audio[i] < 0) {
-                audio[i] = -audio[i]; // Remplace les valeurs négatives par leur valeur absolue (positive)
+        } else {
+            // Parcourt le tableau audio pour rectifier les valeurs négatives
+            for (int i = 0; i < audio.length; i++) {
+                if (audio[i] < 0) {
+                    audio[i] = -audio[i]; // Remplace les valeurs négatives par leur valeur absolue (positive)
+                }
             }
         }
     }
@@ -125,25 +126,24 @@ public class DosRead {
         // Vérifie si le tableau audio est vide ou null
         if (audio == null || audio.length == 0) {
             printError(ERREURAUDIO);
-        }
+        } else {
+            double[] filteredAudio = new double[audio.length];
 
-        double[] filteredAudio = new double[audio.length];
+            // Applique le filtre passe-bas en utilisant une moyenne sur n échantillons
+            for (int i = 0; i < audio.length; i++) {
+                double sum = 0;
+                int count = 0;
 
-        // Applique le filtre passe-bas en utilisant une moyenne sur n échantillons
-        for (int i = 0; i < audio.length; i++) {
-            double sum = 0;
-            int count = 0;
-
-            // Calcule la moyenne des échantillons sur n valeurs avec une fenêtre glissante
-            for (int j = Math.max(0, i - n + 1); j <= Math.min(audio.length - 1, i + n - 1); j++) {
-                sum += audio[j];
-                count++;
+                // Calcule la moyenne des échantillons sur n valeurs avec une fenêtre glissante
+                for (int j = Math.max(0, i - n + 1); j <= Math.min(audio.length - 1, i + n - 1); j++) {
+                    sum += audio[j];
+                    count++;
+                }
+                if (count != 0) {
+                    filteredAudio[i] = sum / count; // Stocke la moyenne dans le tableau filtré
+                }
             }
-            if (count != 0) {
-                filteredAudio[i] = sum / count; // Stocke la moyenne dans le tableau filtré
-            }
         }
-
     }
 
     /**
@@ -156,39 +156,39 @@ public class DosRead {
         // Vérifie si le tableau audio est vide ou null
         if (audio == null || audio.length == 0) {
             printError(ERREURAUDIO);
-        }
+        } else {
+            // Rééchantillonnage du tableau audio
+            double[] resampledAudio = new double[audio.length / period];
+            for (int i = 0; i < resampledAudio.length; i++) {
+                double sum = 0;
 
-        // Rééchantillonnage du tableau audio
-        double[] resampledAudio = new double[audio.length / period];
-        for (int i = 0; i < resampledAudio.length; i++) {
-            double sum = 0;
+                // Calcule la somme des échantillons sur la période donnée
+                for (int j = i * period; j < (i + 1) * period; j++) {
+                    sum += audio[j] * 100.0; // Multiplie par 100 pour augmenter l'amplitude sinon ça n'y arrive pas
+                }
 
-            // Calcule la somme des échantillons sur la période donnée
-            for (int j = i * period; j < (i + 1) * period; j++) {
-                sum += audio[j] * 100.0; // Multiplie par 100 pour augmenter l'amplitude sinon ça n'y arrive pas
+                // Stocke la moyenne des échantillons de la période dans le tableau
+                // rééchantillonné
+                resampledAudio[i] = sum / period;
             }
 
-            // Stocke la moyenne des échantillons de la période dans le tableau
-            // rééchantillonné
-            resampledAudio[i] = sum / period;
-        }
-
-        // Applique le seuil au tableau rééchantillonné
-        for (int i = 0; i < resampledAudio.length; i++) {
-            if (resampledAudio[i] >= threshold) {
-                resampledAudio[i] = 1; // Valeur haute (1)
-            } else {
-                resampledAudio[i] = 0; // Valeur basse (0)
+            // Applique le seuil au tableau rééchantillonné
+            for (int i = 0; i < resampledAudio.length; i++) {
+                if (resampledAudio[i] >= threshold) {
+                    resampledAudio[i] = 1; // Valeur haute (1)
+                } else {
+                    resampledAudio[i] = 0; // Valeur basse (0)
+                }
             }
-        }
 
-        // Remplace le tableau audio original par le tableau rééchantillonné seuillé
-        audio = resampledAudio;
+            // Remplace le tableau audio original par le tableau rééchantillonné seuillé
+            audio = resampledAudio;
 
-        outputBits = new int[audio.length]; // Crée un tableau de bits pour stocker les bits de sortie
+            outputBits = new int[audio.length]; // Crée un tableau de bits pour stocker les bits de sortie
 
-        for (int i = 0; i < audio.length; i++) { // Parcours le tableau audio
-            outputBits[i] = (int) audio[i]; // Convertit les données audio de doubles en bits
+            for (int i = 0; i < audio.length; i++) { // Parcours le tableau audio
+                outputBits[i] = (int) audio[i]; // Convertit les données audio de doubles en bits
+            }
         }
     }
 
@@ -202,39 +202,39 @@ public class DosRead {
     public void decodeBitsToChar() {
         if (outputBits == null || outputBits.length == 0) {
             printError(ERREURAUDIO);
-        }
+        } else {
+            List<Character> decodedCharsList = new ArrayList<>();
+            int startIndex = 0;
 
-        List<Character> decodedCharsList = new ArrayList<>();
-        int startIndex = 0;
-
-        // Recherche de la séquence START_SEQ dans outputBits
-        for (int i = 0; i < outputBits.length - START_SEQ.length; i++) {
-            boolean matchFound = true;
-            for (int j = 0; j < START_SEQ.length; j++) {
-                if (outputBits[i + j] != START_SEQ[j]) {
-                    matchFound = false;
+            // Recherche de la séquence START_SEQ dans outputBits
+            for (int i = 0; i < outputBits.length - START_SEQ.length; i++) {
+                boolean matchFound = true;
+                for (int j = 0; j < START_SEQ.length; j++) {
+                    if (outputBits[i + j] != START_SEQ[j]) {
+                        matchFound = false;
+                        break;
+                    }
+                }
+                if (matchFound) {
+                    startIndex = i + START_SEQ.length;
                     break;
                 }
             }
-            if (matchFound) {
-                startIndex = i + START_SEQ.length;
-                break;
-            }
-        }
 
-        // Lecture des bits après la séquence START_SEQ pour former les caractères
-        for (int i = startIndex; i < outputBits.length; i += 8) {
-            int byteVal = 0;
-            for (int j = 0; j < 8; j++) {
-                byteVal = (byteVal << 1) | outputBits[i + j];
+            // Lecture des bits après la séquence START_SEQ pour former les caractères
+            for (int i = startIndex; i < outputBits.length; i += 8) {
+                int byteVal = 0;
+                for (int j = 0; j < 8; j++) {
+                    byteVal = (byteVal << 1) | outputBits[i + j];
+                }
+                decodedCharsList.add((char) byteVal);
             }
-            decodedCharsList.add((char) byteVal);
-        }
 
-        // Convertir la liste de caractères en un tableau de caractères
-        decodedChars = new char[decodedCharsList.size()];
-        for (int i = 0; i < decodedCharsList.size(); i++) {
-            decodedChars[i] = decodedCharsList.get(i);
+            // Convertir la liste de caractères en un tableau de caractères
+            decodedChars = new char[decodedCharsList.size()];
+            for (int i = 0; i < decodedCharsList.size(); i++) {
+                decodedChars[i] = decodedCharsList.get(i);
+            }
         }
     }
 
