@@ -1,3 +1,8 @@
+
+// Genitrini James B2
+// Contino Corentin B1
+
+// importation des librairies
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -17,13 +22,14 @@ public class DosRead {
     public static final String MODEINCONNU = "mode inconnu"; // Mode inconnu
     public static final String MODELINE = "line"; // Mode line
     public static final String MODEPOINT = "point"; // Mode point
+    public static final String ERREURAUDIO = "Aucune donnée audio à afficher."; // Erreur audio
     public static final double FREQUENCE = 1.0; // Permet de plus ou moins voir la sinusoidale
     public static final double AMPLITUDE = 0.9; // AMPLITUDE de la sinusoidale <= 1
 
     private static boolean isDrawingSinusoidal = false; // Dessiner ou non sinusoidale
 
     // Créez un logger pour votre classe
-    private static final Logger logger = Logger.getLogger(DosSend.class.getName());
+    private static final Logger logger = Logger.getLogger(DosRead.class.getName());
 
     /**
      * Constructor that opens the FIlEInputStream
@@ -86,7 +92,7 @@ public class DosRead {
         audio = new double[audioData.length / 2];
         // Convertit les données audio de bytes en doubles
         for (int i = 0; i < audio.length; i++) { // parcourt le tableau audio
-            audio[i] = (double) ((audioData[2 * i] & 0xFF) | ((audioData[2 * i + 1]) << 8)); // Convertit les données
+            audio[i] = ((audioData[2 * i] & 0xFF) | ((audioData[2 * i + 1]) << 8)); // Convertit les données
             // audio de bytes en doubles
         }
 
@@ -99,8 +105,7 @@ public class DosRead {
     public void audioRectifier() {
         // Vérifie si le tableau audio est vide ou null
         if (audio == null || audio.length == 0) {
-            System.out.println("Aucune donnée audio à rectifier.");
-            return;
+            printError(ERREURAUDIO);
         }
         // Parcourt le tableau audio pour rectifier les valeurs négatives
         for (int i = 0; i < audio.length; i++) {
@@ -119,8 +124,7 @@ public class DosRead {
     public void audioLPFilter(int n) {
         // Vérifie si le tableau audio est vide ou null
         if (audio == null || audio.length == 0) {
-            System.out.println("Aucune donnée audio à filtrer.");
-            return;
+            printError(ERREURAUDIO);
         }
 
         double[] filteredAudio = new double[audio.length];
@@ -135,8 +139,9 @@ public class DosRead {
                 sum += audio[j];
                 count++;
             }
-
-            filteredAudio[i] = sum / count; // Stocke la moyenne dans le tableau filtré
+            if (count != 0) {
+                filteredAudio[i] = sum / count; // Stocke la moyenne dans le tableau filtré
+            }
         }
 
     }
@@ -150,8 +155,7 @@ public class DosRead {
     public void audioResampleAndThreshold(int period, int threshold) {
         // Vérifie si le tableau audio est vide ou null
         if (audio == null || audio.length == 0) {
-            System.out.println("Aucune donnée audio à rééchantillonner et à seuiller.");
-            return;
+            printError(ERREURAUDIO);
         }
 
         // Rééchantillonnage du tableau audio
@@ -197,8 +201,7 @@ public class DosRead {
 
     public void decodeBitsToChar() {
         if (outputBits == null || outputBits.length == 0) {
-            System.out.println("Aucune donnée de sortie à décoder.");
-            return;
+            printError(ERREURAUDIO);
         }
 
         List<Character> decodedCharsList = new ArrayList<>();
@@ -270,6 +273,9 @@ public class DosRead {
         }
     }
 
+    // Récupère les méthodes de DosSend pour éviter la duplication sur les deux
+    // classes dans Sonar scanner
+
     /**
      * Dessine en fonction du mode
      * 
@@ -279,11 +285,7 @@ public class DosRead {
      */
     public static void dessinSignal(String mode, double x1, double x2) {
         // Dessine en fonction du mode
-        if (mode.equals(MODELINE)) {
-            dessinLine(x1, x2);
-        } else {
-            dessinPoint(x1, x2);
-        }
+        DosSend.dessinSignal(mode, x1, x2);
     }
 
     /**
@@ -296,12 +298,7 @@ public class DosRead {
      */
     public static void dessinSinusoidaleLine(double x1, double x2) {
         // dessiner la sinusoidale
-        for (double t = x1; t < x2; t += 0.2) {
-            double y = AMPLITUDE * Math.sin(2 * Math.PI * FREQUENCE * t); // Calcul de l'ordonnée
-            StdDraw.line(t, y, t + 0.2, AMPLITUDE * Math.sin(2 * Math.PI * FREQUENCE * (t + 0.2))); // Dessine
-            // la
-            // sinusoidale
-        }
+        DosSend.dessinSinusoidaleLine(x1, x2);
     }
 
     /**
@@ -314,12 +311,7 @@ public class DosRead {
      */
     public static void dessinSinusoidalePoint(double x1, double x2) {
         // dessiner la sinusoidale
-        for (double t = x1; t < x2; t += 0.1) {
-            double y = AMPLITUDE * Math.sin(2 * Math.PI * FREQUENCE * t); // Calcul de l'ordonnée
-            StdDraw.point(t, y); // Dessine le point de la sinusoidale
-            // la
-            // sinusoidale
-        }
+        DosSend.dessinSinusoidalePoint(x1, x2);
     }
 
     /**
@@ -330,16 +322,7 @@ public class DosRead {
      */
     public static void dessinLine(double x1, double x2) {
         // Dessine soit une sinusoidale soit une ligne droite
-        if (isDrawingSinusoidal) {
-
-            dessinSinusoidaleLine(x1, x2);
-
-            // Une fois la sinusoidale dessinée, réinitialise le mode à false
-            isDrawingSinusoidal = false;
-        } else {
-            // Dessine une ligne droite au milieu Y
-            StdDraw.line(x1, 0, x2, 0);
-        }
+        DosSend.dessinLine(x1, x2);
     }
 
     /*
@@ -351,16 +334,7 @@ public class DosRead {
      */
     public static void dessinPoint(double x1, double x2) {
         // Dessine soit une sinusoidale soit une ligne droite
-        if (isDrawingSinusoidal) {
-
-            dessinSinusoidalePoint(x1, x2);
-
-            // Une fois la sinusoidale dessinée, réinitialise le mode à false
-            isDrawingSinusoidal = false;
-        } else {
-            // Dessine une ligne droite au milieu
-            StdDraw.point(x1, 0);
-        }
+        DosSend.dessinPoint(x1, x2);
     }
 
     /**
@@ -369,8 +343,7 @@ public class DosRead {
      * @param message message d'erreur
      */
     public static void printError(String message) {
-        logger.warning(message);
-        System.exit(1); // Quitte le programme 1 pour erreur
+        DosSend.printError(message);
     }
 
     /**
@@ -381,28 +354,7 @@ public class DosRead {
      * @param title the title of the window
      */
     public static void initializeCanvas(int start, int stop, String title, String mode) {
-        if (start > stop) { // Vérifie que start est inférieur à stop
-            printError("start doit être inférieur à stop");
-        }
-
-        if (!mode.equals(MODELINE) && !mode.equals(MODEPOINT)) { // Si le mode n'est pas line ou point
-            printError(MODEINCONNU);
-        }
-
-        StdDraw.setCanvasSize(800, 400); // Définit la taille de la fenêtre
-        StdDraw.setXscale(start, stop); // Définit l'échelle des abscisses
-        StdDraw.setYscale(-1, 1); // Définit l'échelle des ordonnées
-        StdDraw.setTitle(title); // Définit le titre de la fenêtre
-        StdDraw.setPenColor(StdDraw.BLACK);
-        StdDraw.line(start, 0, stop, 0); // Dessine l'axe des abscisses
-        StdDraw.text(start + 5, 0.9, String.valueOf(0.9)); // Affiche la hauteur de la porteuse
-        StdDraw.text(start + 5, -0.9, String.valueOf(-0.9));
-        // Dessine la barre graduée
-        for (int i = start; i < stop + 200; i += 200) {
-            StdDraw.line(i, -0.02, i, 0.02);
-            StdDraw.text(i, -0.1, String.valueOf(i));
-        }
-        StdDraw.setPenColor(StdDraw.BLUE);
+        DosSend.initializeCanvas(start, stop, title, mode);
     }
 
     /**
