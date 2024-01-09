@@ -179,25 +179,12 @@ public class DosRead {
         // Remplace le tableau audio original par le tableau rééchantillonné seuillé
         audio = resampledAudio;
 
-        // Print the resampled and thresholded values
-        for (int j = 0; j < resampledAudio.length; j++) {
-            System.out.print(resampledAudio[j] + " ");
-        }
-
         outputBits = new int[audio.length]; // Crée un tableau de bits pour stocker les bits de sortie
 
         for (int i = 0; i < audio.length; i++) { // Parcours le tableau audio
             outputBits[i] = (int) audio[i]; // Convertit les données audio de doubles en bits
         }
     }
-
-    // outputBits = new int[] { 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0,
-    // 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1,
-    // 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1,
-    // 1, 0, 1, 1, 0, 1, 1, 1, 1,
-    // 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0,
-    // 1, 0, 0, 0, 0, 0, 0, 0, 1,
-    // 0, 0, 0, 0, 1 };
 
     /**
      * Decode the outputBits array to a char array
