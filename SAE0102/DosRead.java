@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 import java.io.*;
 
@@ -199,7 +201,7 @@ public class DosRead {
             return;
         }
 
-        StringBuilder decodedString = new StringBuilder();
+        List<Character> decodedCharsList = new ArrayList<>();
         int startIndex = 0;
 
         // Recherche de la séquence START_SEQ dans outputBits
@@ -223,10 +225,14 @@ public class DosRead {
             for (int j = 0; j < 8; j++) {
                 byteVal = (byteVal << 1) | outputBits[i + j];
             }
-            decodedString.append((char) byteVal);
+            decodedCharsList.add((char) byteVal);
         }
 
-        decodedChars = decodedString.toString().toCharArray();
+        // Convertir la liste de caractères en un tableau de caractères
+        decodedChars = new char[decodedCharsList.size()];
+        for (int i = 0; i < decodedCharsList.size(); i++) {
+            decodedChars[i] = decodedCharsList.get(i);
+        }
     }
 
     /**
